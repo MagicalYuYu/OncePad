@@ -1354,8 +1354,11 @@ function App() {
     } else {
       // v1.1.0：更新 lastSavedText 以清除 dirty 状态
       setLastSavedText(text)
+      // v1.1.1 修复 Bug 2：保存成功后显示 toast 反馈，避免用户无感知
+      setToastMessage(t('editor.saved'))
+      safeTimeout(() => { setToastMessage(null) }, 1500)
     }
-  }, [fileInfo, text])
+  }, [fileInfo, text, t])
 
   // v1.1.0：文件是否已修改（dirty 状态检测）
   const isFileDirty = fileInfo && text !== lastSavedText
@@ -1369,6 +1372,26 @@ function App() {
       action()
     }
   }, [isFileDirty])
+
+  // v1.1.1：在已有窗口中加载外部文件（双击文件复用窗口场景）
+  // 主进程 second-instance 事件中，优先复用已有窗口而非创建新窗口，减少 Electron 进程启动开销
+  const loadFileFromExternal = useCallback((filePath: string) => {
+    checkUnsavedAndExecute(async () => {
+      const result = await window.electronAPI.openFile(filePath)
+      if (result) {
+        setText(result.content)
+        // 根据文件后缀名判断格式（md/markdown 为 MD 格式，其他为纯文本）
+        const ext = result.fileName.toLowerCase().match(/\.([^.]+)$/)?.[1] || ''
+        const isMd = ext === 'md' || ext === 'markdown'
+        setEditorFormat(isMd ? 'md' : 'plain')
+        // MD 文件默认浏览模式，其他格式默认编辑模式
+        setEditorMode(isMd ? 'preview' : 'code')
+        setFileInfo({ filePath: result.filePath, fileName: result.fileName })
+        setLastSavedText(result.content)
+        window.electronAPI.setWindowFile(result.filePath)
+      }
+    })
+  }, [checkUnsavedAndExecute])
 
   // v1.1.0：未保存对话框 - 保存
   const handleUnsavedDialogSave = useCallback(async () => {
@@ -1434,10 +1457,13 @@ function App() {
       setFileInfo({ filePath: result.filePath, fileName: result.fileName })
       setLastSavedText(text)
       window.electronAPI.setWindowFile(result.filePath)
+      // v1.1.1 修复 Bug 2：另存为成功后也显示 toast 反馈
+      setToastMessage(t('editor.saved'))
+      safeTimeout(() => { setToastMessage(null) }, 1500)
     } else if (!result.success && result.error !== '用户取消') {
       alert(`另存为失败：${result.error || '未知错误'}`)
     }
-  }, [fileInfo, text])
+  }, [fileInfo, text, t])
 
   // v1.1.0：关闭文件（退出文件模式，回到笔记模式）
   const handleCloseFile = useCallback(() => {
@@ -1474,6 +1500,36 @@ function App() {
       handleCloseWithCheck()
     })
   }, [handleCloseWithCheck])
+
+  // v1.1.1：监听主进程"在已有窗口加载文件"请求（双击文件复用窗口场景）
+  // 主进程 second-instance 事件中，优先复用已有窗口而非创建新窗口
+  useEffect(() => {
+    window.electronAPI.onLoadFileInWindow((filePath: string) => {
+      loadFileFromExternal(filePath)
+    })
+  }, [loadFileFromExternal])
+
+  // v1.1.1：渲染进程全局错误捕获
+  // 捕获 window.onerror 和 unhandledrejection，通过 IPC 转发到主进程写入日志文件
+  // 主进程已捕获 uncaughtException/unhandledRejection/renderer-process-gone，这里补充前端错误
+  useEffect(() => {
+    const handleWindowError = (event: ErrorEvent) => {
+      const detail = event.error?.stack || event.message || 'Unknown error'
+      window.electronAPI.writeErrorLog(`Window Error: ${detail} @ ${event.filename}:${event.lineno}:${event.colno}`)
+    }
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason instanceof Error
+        ? (event.reason.stack || event.reason.message)
+        : String(event.reason)
+      window.electronAPI.writeErrorLog(`Unhandled Rejection: ${reason}`)
+    }
+    window.addEventListener('error', handleWindowError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+    return () => {
+      window.removeEventListener('error', handleWindowError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [])
 
   // === 拖拽文件打开：v1.1.0 扩展，支持拖拽任意文本文件到编辑器区域打开 ===
   // 后缀名未收录时，由主进程 validateFilePath 检测内容是否为纯文本
@@ -1524,11 +1580,12 @@ function App() {
     }
     if (e.key === 's' && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
       e.preventDefault()
-      // 文件模式：保存到原文件；笔记模式：保存为笔记
+      // v1.1.1 修复 Bug 2：文件模式保存到原文件；无文件时触发"另存为"对话框
+      // 原行为是无文件时调用 saveCurrentNote()，但用户用软件打开新 TXT 后期望 Ctrl+S 保存到文件
       if (fileInfo) {
         handleSaveToFile()
       } else {
-        saveCurrentNote()
+        handleSaveAs()
       }
       return
     }
@@ -1595,7 +1652,7 @@ function App() {
         window.electronAPI.hideWindow()
       }
     }
-  }, [showNotes, showSettings, showColorPicker, showOutline, noteContextMenu, workspaceContextMenu, saveCurrentNote, handleNew, handleCopy, newShortcut, copyShortcut, adjustFontSize, editorMode, wrapSelection, insertLink, fileInfo, handleSaveToFile])
+  }, [showNotes, showSettings, showColorPicker, showOutline, noteContextMenu, workspaceContextMenu, saveCurrentNote, handleNew, handleCopy, newShortcut, copyShortcut, adjustFontSize, editorMode, wrapSelection, insertLink, fileInfo, handleSaveToFile, handleSaveAs])
 
   // 当前笔记的标签徽章（解析 tagId → 名称）
   const currentNoteTags = useMemo(() => {

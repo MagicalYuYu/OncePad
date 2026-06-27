@@ -261,6 +261,14 @@ export interface ElectronAPI {
   forceCloseWindow: () => Promise<void>
   // v1.1.0：监听主进程关闭请求
   onRequestClose: (callback: () => void) => void
+  // v1.1.1：监听主进程"在已有窗口加载文件"请求（双击文件复用窗口）
+  onLoadFileInWindow: (callback: (filePath: string) => void) => void
+  // v1.1.1：打开日志文件夹（设置界面入口）
+  openLogsFolder: () => Promise<boolean>
+  // v1.1.1：获取日志存储路径（设置界面显示）
+  getLogsPath: () => Promise<string>
+  // v1.1.1：渲染进程写入错误日志（window.onerror 捕获后发送）
+  writeErrorLog: (message: string) => Promise<void>
 
   // ===== 调试日志方法 =====
   writeDebugLog: (message: string) => Promise<string>

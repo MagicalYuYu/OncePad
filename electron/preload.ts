@@ -91,6 +91,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   forceCloseWindow: () => ipcRenderer.invoke('force-close-window'),
   // v1.1.0：监听主进程的关闭请求（Alt+F4 / 系统关闭时触发）
   onRequestClose: (callback: () => void) => ipcRenderer.on('request-close', () => callback()),
+  // v1.1.1：监听主进程的"在已有窗口加载文件"请求（双击文件时复用已有窗口）
+  onLoadFileInWindow: (callback: (filePath: string) => void) => ipcRenderer.on('load-file-in-window', (_e, filePath: string) => callback(filePath)),
+  // v1.1.1：打开日志文件夹（设置界面"打开日志文件夹"按钮）
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
+  // v1.1.1：获取日志存储路径（设置界面显示）
+  getLogsPath: () => ipcRenderer.invoke('get-logs-path'),
+  // v1.1.1：渲染进程写入错误日志（前端 window.onerror 捕获后通过 IPC 发送）
+  writeErrorLog: (message: string) => ipcRenderer.invoke('write-error-log', message),
 
   // ===== 调试日志 IPC 方法 =====
   writeDebugLog: (message: string) => ipcRenderer.invoke('write-debug-log', message),

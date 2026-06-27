@@ -10,7 +10,7 @@
 
 Press a global shortcut to summon it, type your text, press again — and it's already on your clipboard, ready to paste anywhere.
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.1.1-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square)
 ![Languages](https://img.shields.io/badge/i18n-11%20languages-blueviolet?style=flat-square)
@@ -36,6 +36,11 @@ Press a global shortcut to summon it, type your text, press again — and it's a
 - 📂 **File menu** — Open / save / save as files directly; drag-and-drop text files (.md / .txt / .log / code files)
 - 📄 **Broad format support** — Opens any plain-text file, even with uncommon extensions (content-aware detection)
 - 👁️ **MD preview by default** — Markdown files open in reading mode; other formats open in edit mode
+- 💾 **Save feedback** — Visual toast confirmation on successful save (Ctrl+S)
+- 🚪 **Reliable close** — Force-close mechanism prevents freeze when closing Markdown files
+- ⚡ **Fast file opening** — Reuses existing window when double-clicking files in Explorer (no new process overhead)
+- 📋 **Error logging** — Crash and freeze logs stored at a fixed path, accessible from Settings → Management → Advanced
+- 🔗 **Broad file associations** — Registers as default editor for 40+ file types (.md / .txt / .js / .py / .json / .csv / .sh / .html / .css / ...)
 - ℹ️ **About dialog** — View app version and system info, with quick link to GitHub repository
 - 🌐 **11 languages** — 简体中文 / 繁體中文 / English / 日本語 / 한국어 / Deutsch / Français / Español / Português (Brasil) / Русский / Italiano
 - 🎛️ **Navbar customization** — Show/hide titlebar buttons (pin, color, new, copy, notes)
@@ -97,7 +102,8 @@ Press a global shortcut to summon it, type your text, press again — and it's a
 
 Download the latest release from the [Releases](../../releases) page.
 
-- **Windows**: Download the portable `.exe` and run directly — no installation required
+- **Windows (Installer, recommended)**: Download `OncePad-Setup-x.x.x.exe`, run the installer, and OncePad will be permanently installed to `AppData\Local\Programs\OncePad\`. The installer registers file associations for 40+ file types, so double-clicking `.md` / `.txt` / `.js` / `.py` / `.json` / etc. in Explorer will open them in OncePad instantly. The installed version also appears in "Open with" right-click menus.
+- **Windows (Portable)**: Download `OncePad x.x.x.exe` and run directly — no installation required. Note: the portable version is a 7z self-extracting executable (~200 MB); each launch extracts to a temp folder, which may cause a delay of several seconds when double-clicking files in Explorer. For daily use, the installer version is strongly recommended.
 - **macOS**: Download the `.dmg` (note: unsigned, run `xattr -cr "/Applications/OncePad.app"` if blocked)
 - **Linux**: Download the `.AppImage`, make executable, and run
 

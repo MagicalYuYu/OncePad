@@ -51,6 +51,41 @@ const trashIndexPath = path.join(trashDir, 'index.json')
 // 回收站自动清理时间：24 小时
 const TRASH_TTL_MS = 24 * 60 * 60 * 1000
 
+// ===== v1.1.1 异常日志系统 =====
+// 日志存储目录：%APPDATA%\OncePad\logs\
+// 日志文件命名：oncepad-YYYY-MM-DD.log（按天分割，便于排查）
+// 捕获范围：主进程未捕获异常 / Promise 未处理拒绝 / 渲染进程崩溃 / GPU 崩溃 / 渲染进程前端错误
+const logsDir = path.join(app.getPath('userData'), 'logs')
+
+/**
+ * 获取当前日期的日志文件路径（按天分割）
+ */
+function getCurrentLogFile(): string {
+  const today = new Date().toISOString().slice(0, 10)
+  return path.join(logsDir, `oncepad-${today}.log`)
+}
+
+/**
+ * 写入错误日志（同步写入，避免日志丢失）
+ * 日志格式：[ISO 时间戳] [级别] 消息
+ * 安全策略：写入失败时仅 console.error，不再抛出异常（避免递归崩溃）
+ */
+function writeErrorLog(level: string, message: string): void {
+  try {
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true })
+    }
+    const ts = new Date().toISOString()
+    const logLine = `[${ts}] [${level}] ${message}\n`
+    fs.appendFileSync(getCurrentLogFile(), logLine)
+    // 同时输出到控制台，便于 dev 模式调试
+    console.error(logLine)
+  } catch (err) {
+    // 日志写入失败时仅 console.error，避免递归崩溃
+    console.error('Failed to write error log:', err)
+  }
+}
+
 const defaultMod = 'Control'
 // v1.1.0：默认快捷键调整为 Alt+Q（单手可触），新建/复制默认为空（用户按需配置）
 const defaultShortcut = 'Alt+Q'
@@ -973,7 +1008,7 @@ const SUPPORTED_EXTS = [
   // 文档类
   '.md', '.markdown', '.txt', '.text', '.log',
   // 代码类
-  '.js', '.ts', '.jsx', '.tsx', '.json', '.css', '.scss', '.less',
+  '.js', '.ts', '.jsx', '.tsx', '.mjs', '.cjs', '.json', '.css', '.scss', '.sass', '.less',
   '.html', '.htm', '.xml', '.svg', '.vue', '.svelte',
   '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.hpp', '.cs',
   '.go', '.rs', '.swift', '.kt', '.scala', '.clj', '.ex', '.exs',
@@ -1328,6 +1363,16 @@ function createWindow(config: Config, filePath?: string) {
     menu.popup(newWin)
   })
 
+  // v1.1.1：渲染进程崩溃捕获（Electron 28+ 使用 render-process-gone 事件）
+  newWin.webContents.on('render-process-gone', (_event, details) => {
+    writeErrorLog('FATAL', `Renderer process gone: reason=${details.reason}, exitCode=${details.exitCode}`)
+  })
+
+  // v1.1.1：渲染进程无响应捕获
+  newWin.on('unresponsive', () => {
+    writeErrorLog('WARN', `Window unresponsive: id=${newWin.id}`)
+  })
+
   // 加载 URL：如果有 filePath，通过 query parameter 传递给渲染进程
   if (VITE_DEV_SERVER_URL) {
     if (filePath) {
@@ -1436,12 +1481,24 @@ if (!gotTheLock) {
   // 获取锁失败，说明已有实例运行，直接退出
   app.quit()
 } else {
-  // 监听 second-instance 事件：应用已运行时再次双击 .md 文件触发
+  // 监听 second-instance 事件：应用已运行时再次双击文件触发
   app.on('second-instance', (_event, commandLine, _workingDirectory) => {
     const filePath = extractFilePathFromArgs(commandLine)
+
     if (filePath) {
-      // 有文件参数：创建新窗口加载该文件
-      loadFileToNewWindow(filePath)
+      // v1.1.1：优先复用已有窗口加载文件，避免创建新窗口的开销
+      const lastWin = getLastWindow()
+      if (lastWin) {
+        // 聚焦已有窗口
+        if (lastWin.isMinimized()) lastWin.restore()
+        lastWin.show()
+        lastWin.focus()
+        // 通知渲染进程在已有窗口中加载文件（渲染进程会先检查未保存修改）
+        lastWin.webContents.send('load-file-in-window', filePath)
+      } else {
+        // 没有窗口则创建新窗口加载文件
+        loadFileToNewWindow(filePath)
+      }
     } else {
       // 无文件参数：聚焦最后一个活动窗口
       const lastWin = getLastWindow()
@@ -1456,6 +1513,24 @@ if (!gotTheLock) {
     }
   })
 } // end of else (gotTheLock)
+
+// ===== v1.1.1 进程级异常捕获 =====
+// 必须在 app.whenReady() 之前注册，确保启动阶段的异常也能被捕获
+process.on('uncaughtException', (err: Error) => {
+  const stack = err.stack || err.message || String(err)
+  writeErrorLog('FATAL', `Uncaught Exception: ${stack}`)
+})
+
+process.on('unhandledRejection', (reason: unknown) => {
+  const detail = reason instanceof Error
+    ? (reason.stack || reason.message)
+    : String(reason)
+  writeErrorLog('ERROR', `Unhandled Rejection: ${detail}`)
+})
+
+app.on('child-process-gone', (_event, details) => {
+  writeErrorLog('ERROR', `Child process gone: reason=${details.reason}, exitCode=${details.exitCode}, name=${details.name}`)
+})
 
 app.whenReady().then(() => {
   // ===== 品牌升级数据迁移（one-time-editor → oncepad）=====
@@ -1639,6 +1714,10 @@ app.whenReady().then(() => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return
 
+    // v1.1.0 修复 Bug 1：渲染进程已做未保存检查，添加 forceClose 标记
+    // 避免 close 事件再次拦截 request-close 导致死循环（程序卡死）
+    forceClose.add(win.id)
+
     // 检查是否为最后一个窗口
     // windows Map 中的窗口数（排除当前正在关闭的窗口）
     const otherWindows = Array.from(windows.values()).filter(w => w.id !== win.id)
@@ -1655,6 +1734,8 @@ app.whenReady().then(() => {
     if (behavior === 'hide') {
       // 隐藏到托盘，不退出
       win.hide()
+      // hide 不触发 close 事件，手动清理 forceClose
+      forceClose.delete(win.id)
     } else if (behavior === 'quit') {
       // 直接退出应用
       win.close()
@@ -1671,10 +1752,13 @@ app.whenReady().then(() => {
       })
       if (choice.response === 0) {
         win.hide()
+        forceClose.delete(win.id)
       } else if (choice.response === 1) {
         win.close()
+      } else {
+        // 用户取消，清理 forceClose
+        forceClose.delete(win.id)
       }
-      // response === 2：取消，不做任何操作
     }
   })
 
@@ -2191,6 +2275,31 @@ app.whenReady().then(() => {
     if (typeof url !== 'string' || !url.startsWith('https://')) return false
     await shell.openExternal(url)
     return true
+  })
+
+  // v1.1.1：异常日志 IPC
+  // 打开日志文件夹（用户在设置中点击"打开日志文件夹"按钮时调用）
+  ipcMain.handle('open-logs-folder', async () => {
+    try {
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true })
+      }
+      await shell.openPath(logsDir)
+      return true
+    } catch (err) {
+      writeErrorLog('ERROR', `Failed to open logs folder: ${err}`)
+      return false
+    }
+  })
+
+  // 获取日志存储路径（用于设置界面显示）
+  ipcMain.handle('get-logs-path', () => {
+    return logsDir
+  })
+
+  // 渲染进程写入错误日志（前端 window.onerror / unhandledrejection 捕获后通过 IPC 发送）
+  ipcMain.handle('write-error-log', (_event, message: string) => {
+    writeErrorLog('ERROR', `[Renderer] ${message}`)
   })
 
   // 强制关闭窗口（用户确认未保存对话框后调用，跳过未保存检查）

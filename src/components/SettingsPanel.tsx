@@ -158,6 +158,18 @@ export function SettingsPanel(props: SettingsPanelProps) {
   const tabsRef = useRef<HTMLDivElement>(null)
   const tabsIndicatorRef = useRef<HTMLDivElement>(null)
   const [managementSubTab, setManagementSubTab] = useState<'workspace' | 'tag' | 'advanced'>('workspace')
+  // v1.1.1：异常日志路径（设置→管理→高级中显示，用户可快速跳转到日志目录）
+  const [logsPath, setLogsPath] = useState('')
+
+  // 加载日志路径（组件挂载时异步获取）
+  useEffect(() => {
+    window.electronAPI.getLogsPath().then(setLogsPath)
+  }, [])
+
+  // 打开日志文件夹
+  const handleOpenLogsFolder = () => {
+    window.electronAPI.openLogsFolder()
+  }
 
   // 标签栏滚轮水平滚动：鼠标滚轮垂直滚动转换为水平滚动
   const handleTabsWheel = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -271,7 +283,7 @@ export function SettingsPanel(props: SettingsPanelProps) {
                 value={props.language}
                 onChange={props.onLanguageChange}
               >
-                <option value="zh-CN">中文（简体）</option>
+                <option value="zh-CN">简体中文</option>
                 <option value="zh-TW">繁體中文</option>
                 <option value="en">English</option>
                 <option value="ja">日本語</option>
@@ -919,17 +931,42 @@ export function SettingsPanel(props: SettingsPanelProps) {
             {managementSubTab === 'advanced' && (
               <>
                 <div className="settings-item">
-                  <div className="settings-label">{t('settings.showDebugTab', '显示调试面板')}</div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={props.showDebugTab}
-                      onChange={(e) => props.onShowDebugTabChange(e.target.checked)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                  <div className="settings-hint">
-                    {t('settings.showDebugTabHint', '启用后将在设置面板显示 Debug 标签页，用于查看调试日志')}
+                  <div className="settings-row">
+                    <div>
+                      <div className="settings-label">{t('settings.showDebugTab', '显示调试面板')}</div>
+                      <div className="setting-description">
+                        {t('settings.showDebugTabHint', '启用后将在设置面板显示 Debug 标签页，用于查看调试日志')}
+                      </div>
+                    </div>
+                    <label className="switch">
+                      <input
+                        type="checkbox"
+                        checked={props.showDebugTab}
+                        onChange={(e) => props.onShowDebugTabChange(e.target.checked)}
+                      />
+                      <span className="switch-slider" />
+                    </label>
+                  </div>
+                </div>
+                {/* v1.1.1：异常日志入口 */}
+                <div className="settings-item">
+                  <div className="settings-row">
+                    <div>
+                      <div className="settings-label">{t('settings.logs', '异常日志')}</div>
+                      <div className="setting-description" style={{ wordBreak: 'break-all' }}>
+                        {t('settings.logsHint', '程序异常（卡死、闪退等）的日志存储在：')}<code>{logsPath}</code>
+                      </div>
+                    </div>
+                    <button
+                      className="btn-secondary"
+                      onClick={handleOpenLogsFolder}
+                      style={{
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {t('settings.openLogsFolder', '打开日志文件夹')}
+                    </button>
                   </div>
                 </div>
                 {/* v1.1.0：序号补全已移至"编辑器"标签页（更符合功能归属）*/}
