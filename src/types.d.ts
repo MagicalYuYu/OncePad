@@ -262,9 +262,11 @@ export interface ElectronAPI {
   // v1.1.0：强制关闭窗口
   forceCloseWindow: () => Promise<void>
   // v1.1.0：监听主进程关闭请求
-  onRequestClose: (callback: () => void) => void
+  // v1.1.3 修复 Bug M-2：返回移除函数，避免监听器累积
+  onRequestClose: (callback: () => void) => () => void
   // v1.1.1：监听主进程"在已有窗口加载文件"请求（双击文件复用窗口）
-  onLoadFileInWindow: (callback: (filePath: string) => void) => void
+  // v1.1.3 修复 Bug M-2：返回移除函数，避免监听器累积
+  onLoadFileInWindow: (callback: (filePath: string) => void) => () => void
   // v1.1.1：打开日志文件夹（设置界面入口）
   openLogsFolder: () => Promise<boolean>
   // v1.1.1：获取日志存储路径（设置界面显示）

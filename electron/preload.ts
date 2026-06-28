@@ -92,9 +92,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // v1.1.0：强制关闭窗口（跳过未保存检查）
   forceCloseWindow: () => ipcRenderer.invoke('force-close-window'),
   // v1.1.0：监听主进程的关闭请求（Alt+F4 / 系统关闭时触发）
-  onRequestClose: (callback: () => void) => ipcRenderer.on('request-close', () => callback()),
+  // v1.1.3 修复 Bug M-2：返回移除函数，避免 ipcRenderer.on 监听器累积
+  // 根因：ipcRenderer.on() 每次调用都注册新监听器，useEffect 重新执行时旧监听器不会被移除，
+  //       导致 loadFileFromExternal 被多次调用，且旧监听器闭包捕获过期 state 触发误弹窗
+  onRequestClose: (callback: () => void) => {
+    const listener = () => callback()
+    ipcRenderer.on('request-close', listener)
+    return () => ipcRenderer.removeListener('request-close', listener)
+  },
   // v1.1.1：监听主进程的"在已有窗口加载文件"请求（双击文件时复用已有窗口）
-  onLoadFileInWindow: (callback: (filePath: string) => void) => ipcRenderer.on('load-file-in-window', (_e, filePath: string) => callback(filePath)),
+  // v1.1.3 修复 Bug M-2：返回移除函数，避免监听器累积（同上）
+  onLoadFileInWindow: (callback: (filePath: string) => void) => {
+    const listener = (_e: IpcRendererEvent, filePath: string) => callback(filePath)
+    ipcRenderer.on('load-file-in-window', listener)
+    return () => ipcRenderer.removeListener('load-file-in-window', listener)
+  },
   // v1.1.1：打开日志文件夹（设置界面"打开日志文件夹"按钮）
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
   // v1.1.1：获取日志存储路径（设置界面显示）

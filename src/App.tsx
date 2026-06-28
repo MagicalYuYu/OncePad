@@ -1372,23 +1372,46 @@ function App() {
   // v1.1.0：文件是否已修改（dirty 状态检测）
   const isFileDirty = fileInfo && text !== lastSavedText
 
+  // v1.1.3 修复 Bug M-2：state ref 镜像，让 checkUnsavedAndExecute 读取最新 state 而非闭包捕获值
+  // 根因：checkUnsavedAndExecute 依赖 [fileInfo, isFileDirty, currentNote, text, saveCurrentNote]，
+  //   每次 state 变化都会重建，导致依赖它的 loadFileFromExternal/handleCloseWithCheck 也重建，
+  //   进而触发 useEffect 重新注册 IPC 监听器。即使已修复监听器移除，频繁重建仍浪费性能。
+  //   改用 ref 后 checkUnsavedAndExecute 依赖稳定（空数组），监听器只注册一次。
+  const fileInfoRef = useRef(fileInfo)
+  const isFileDirtyRef = useRef(isFileDirty)
+  const currentNoteRef = useRef(currentNote)
+  const textRef = useRef(text)
+  const saveCurrentNoteRef = useRef(saveCurrentNote)
+  useEffect(() => {
+    fileInfoRef.current = fileInfo
+    isFileDirtyRef.current = isFileDirty
+    currentNoteRef.current = currentNote
+    textRef.current = text
+    saveCurrentNoteRef.current = saveCurrentNote
+  })
+
   // v1.1.3 修复 Bug 2：检查未保存修改并执行动作
   // 设计原则：笔记模式（草稿/收藏）永远实时保存，不弹窗、不丢弃
   // - 文件模式（fileInfo 存在）且有修改：弹窗询问是否保存文件
   // - 笔记模式（fileInfo 为空）且有修改：自动保存笔记后执行 action（不弹窗）
   // - 无修改：直接执行 action
+  // v1.1.3 修复 Bug M-2：改用 ref 读取最新 state，依赖数组稳定为空，避免闭包捕获过期 state
   const checkUnsavedAndExecute = useCallback((action: () => void) => {
-    if (fileInfo && isFileDirty) {
+    const fi = fileInfoRef.current
+    const dirty = isFileDirtyRef.current
+    const cn = currentNoteRef.current
+    const tx = textRef.current
+    if (fi && dirty) {
       // 文件模式且有修改：弹窗询问是否保存文件
       pendingActionRef.current = action
       setShowUnsavedDialog(true)
-    } else if (!fileInfo && currentNote && text !== currentNote.content) {
+    } else if (!fi && cn && tx !== cn.content) {
       // 笔记模式且有修改：自动保存笔记（不弹窗，不丢弃）
-      saveCurrentNote().then(() => action())
+      saveCurrentNoteRef.current().then(() => action())
     } else {
       action()
     }
-  }, [fileInfo, isFileDirty, currentNote, text, saveCurrentNote])
+  }, [])
 
   // v1.1.1：在已有窗口中加载外部文件（双击文件复用窗口场景）
   // 主进程 second-instance 事件中，优先复用已有窗口而非创建新窗口，减少 Electron 进程启动开销
@@ -1527,18 +1550,25 @@ function App() {
 
   // v1.1.0：监听主进程的关闭请求（Alt+F4 / 系统关闭按钮触发）
   // 主进程会拦截 close 事件并通过 IPC 通知渲染进程执行未保存检查
+  // v1.1.3 修复 Bug M-2：useEffect cleanup 中移除监听器，避免监听器累积
+  //   根因：onRequestClose 内部 ipcRenderer.on() 每次注册新监听器，旧监听器不会被移除。
+  //   当 checkUnsavedAndExecute 随 state 变化重建时，useEffect 重新执行注册新监听器，
+  //   旧监听器闭包捕获过期 state（如 isFileDirty=true），导致后续触发误弹窗。
   useEffect(() => {
-    window.electronAPI.onRequestClose(() => {
+    const removeListener = window.electronAPI.onRequestClose(() => {
       handleCloseWithCheck()
     })
+    return () => removeListener()
   }, [handleCloseWithCheck])
 
   // v1.1.1：监听主进程"在已有窗口加载文件"请求（双击文件复用窗口场景）
   // 主进程 second-instance 事件中，优先复用已有窗口而非创建新窗口
+  // v1.1.3 修复 Bug M-2：useEffect cleanup 中移除监听器，避免监听器累积（同上）
   useEffect(() => {
-    window.electronAPI.onLoadFileInWindow((filePath: string) => {
+    const removeListener = window.electronAPI.onLoadFileInWindow((filePath: string) => {
       loadFileFromExternal(filePath)
     })
+    return () => removeListener()
   }, [loadFileFromExternal])
 
   // v1.1.1：渲染进程全局错误捕获
@@ -1604,7 +1634,10 @@ function App() {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (matchShortcut(e, newShortcut)) {
       e.preventDefault()
-      handleNew()
+      // v1.1.3 修复 Bug M-4：newShortcut 改走 handleNewWithCheck，统一经过未保存检查
+      //   根因：原代码直接调用 handleNew()，绕过 checkUnsavedAndExecute，
+      //   文件模式下未保存的修改会被静默丢弃（不弹窗、不保存）。
+      handleNewWithCheck()
       return
     }
     if (matchShortcut(e, copyShortcut)) {
@@ -1688,7 +1721,7 @@ function App() {
         window.electronAPI.hideWindow()
       }
     }
-  }, [showNotes, showSettings, showColorPicker, showOutline, noteContextMenu, workspaceContextMenu, saveCurrentNote, handleNew, handleCopy, newShortcut, copyShortcut, adjustFontSize, editorMode, wrapSelection, insertLink, fileInfo, handleSaveToFile, handleSaveAs])
+  }, [showNotes, showSettings, showColorPicker, showOutline, noteContextMenu, workspaceContextMenu, saveCurrentNote, handleNewWithCheck, handleCopy, newShortcut, copyShortcut, adjustFontSize, editorMode, wrapSelection, insertLink, fileInfo, handleSaveToFile, handleSaveAs])
 
   // 当前笔记的标签徽章（解析 tagId → 名称）
   const currentNoteTags = useMemo(() => {
@@ -2381,7 +2414,11 @@ function App() {
         <>
           <div className="popover-backdrop" />
           <div className="unsaved-dialog">
-            <p className="unsaved-dialog-message">{t('unsaved.message', '文件内容已修改但未保存，是否保存？')}</p>
+            <p className="unsaved-dialog-message">
+              {fileInfo
+                ? t('unsaved.messageFile', '文件 "{{fileName}}" 已修改但未保存，是否保存？', { fileName: fileInfo.fileName })
+                : t('unsaved.message', '文件内容已修改但未保存，是否保存？')}
+            </p>
             <div className="unsaved-dialog-buttons">
               <button className="unsaved-btn-save" onClick={handleUnsavedDialogSave}>
                 {t('unsaved.save', '保存')}

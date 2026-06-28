@@ -232,6 +232,7 @@
   },
   "unsaved": {
     "message": "Le fichier a été modifié mais n'a pas été enregistré. Enregistrer les modifications ?",
+    "messageFile": "Le fichier « {{fileName}} » a été modifié mais n'a pas été enregistré. Enregistrer les modifications ?",
     "save": "Enregistrer",
     "discard": "Ne pas enregistrer",
     "cancel": "Annuler"

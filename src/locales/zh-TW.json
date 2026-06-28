@@ -232,6 +232,7 @@
   },
   "unsaved": {
     "message": "檔案內容已修改但未儲存，是否儲存？",
+    "messageFile": "檔案 \"{{fileName}}\" 已修改但未儲存，是否儲存？",
     "save": "儲存",
     "discard": "不儲存",
     "cancel": "取消"

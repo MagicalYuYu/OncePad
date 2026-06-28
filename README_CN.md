@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-<img src="https://raw.githubusercontent.com/MagicalYuYu/OncePad/main/build/icon.png" width="120" alt="OncePad Logo" />
+<img src="build/icon.png" width="120" alt="OncePad Logo" />
 
 # OncePad
 

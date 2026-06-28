@@ -232,6 +232,7 @@
   },
   "unsaved": {
     "message": "Die Datei wurde geändert, aber nicht gespeichert. Änderungen speichern?",
+    "messageFile": "Datei \"{{fileName}}\" wurde geändert, aber nicht gespeichert. Änderungen speichern?",
     "save": "Speichern",
     "discard": "Nicht speichern",
     "cancel": "Abbrechen"

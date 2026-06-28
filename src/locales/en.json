@@ -232,6 +232,7 @@
   },
   "unsaved": {
     "message": "The file has been modified but not saved. Save changes?",
+    "messageFile": "File \"{{fileName}}\" has been modified but not saved. Save changes?",
     "save": "Save",
     "discard": "Don't Save",
     "cancel": "Cancel"
