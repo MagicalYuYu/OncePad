@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>OncePad — The Instant Scratchpad</title>
+  <meta name="description" content="A lightweight, always-available scratchpad. Press Alt+Q, type anything, press again — your text is copied and ready to paste.">
+  <meta name="keywords" content="OncePad, scratchpad, notes, markdown, electron, clipboard, instant editor">
+  <meta name="author" content="MagicalYuYu">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://oncepad.magicalyu.online/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="OncePad — The Instant Scratchpad">
+  <meta property="og:description" content="Press Alt+Q, type anything, press again — your text is copied and ready to paste.">
+  <meta property="og:url" content="https://oncepad.magicalyu.online/">
+  <meta property="og:image" content="https://oncepad.magicalyu.online/icon-512.png">
+  <meta property="og:site_name" content="OncePad">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OncePad — The Instant Scratchpad">
+  <meta name="twitter:description" content="Press Alt+Q, type anything, press again — your text is copied and ready to paste.">
+  <meta name="twitter:image" content="https://oncepad.magicalyu.online/icon-512.png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="theme-color" content="#336CFF">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="OncePad">
+
+  <!-- Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "OncePad",
+    "description": "A lightweight, always-available scratchpad for drafting messages, AI prompts, and quick notes.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "MagicalYuYu" }
+  }
+  </script>
+
+  <style>
+    /* ============ CSS 变量（基于 OncePad 应用图标提炼） ============ */
+    :root {
+      /* Primary: Icon Blue (periwinkle → sky blue gradient) */
+      --color-primary-300: #7BA3FF;
+      --color-primary-400: #5287FF;
+      --color-primary-500: #336CFF;
+      --color-primary-600: #1A56F5;
+      --color-primary-700: #1344CC;
+
+      /* Secondary: Cyan/Turquoise (icon curl accent) */
+      --color-cyan-300: #4DDCE9;
+      --color-cyan-400: #26D4E2;
+      --color-cyan-500: #00C8DA;
+
+      /* Accent: Vivid Periwinkle (icon highlight) */
+      --color-accent: #7B61FF;
+      --color-accent-light: #A78BFA;
+
+      /* Background */
+      --bg-dark: #0B1120;
+      --bg-dark-secondary: #111827;
+      --bg-dark-tertiary: #1A2332;
+      --bg-elevated: #1A2332;
+
+      /* Foreground */
+      --fg-primary: #F1F5F9;
+      --fg-secondary: #CBD5E1;
+      --fg-tertiary: #94A3B8;
+      --fg-muted: #64748B;
+
+      /* Border */
+      --border-glass: rgba(51, 108, 255, 0.12);
+      --border-glass-hover: rgba(82, 135, 255, 0.28);
+
+      /* Glass */
+      --glass-bg: rgba(17, 24, 39, 0.6);
+      --glass-bg-hover: rgba(26, 35, 50, 0.75);
+
+      /* Glow */
+      --glow-primary: rgba(51, 108, 255, 0.4);
+      --glow-cyan: rgba(0, 200, 218, 0.35);
+      --glow-accent: rgba(123, 97, 255, 0.35);
+
+      /* Gradients */
+      --grad-primary: linear-gradient(135deg, #336CFF 0%, #7B61FF 100%);
+      --grad-cyan: linear-gradient(135deg, #336CFF 0%, #00C8DA 100%);
+      --grad-hero-text: linear-gradient(135deg, #F1F5F9 0%, #ADC8FF 50%, #4DDCE9 100%);
+
+      /* Shadows */
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 8px 32px rgba(51, 108, 255, 0.15);
+      --shadow-glow: 0 0 40px rgba(51, 108, 255, 0.3);
+
+      /* Radius */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      /* Typography */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+      /* Layout */
+      --max-width: 1200px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ============ 基础重置 ============ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-dark);
+      color: var(--fg-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============ Skip to Content ============ */
+    .skip-to-content {
+      position: absolute;
+      top: -100px;
+      left: 0;
+      background: var(--color-primary-500);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 0 0 var(--radius-md) 0;
+      z-index: 10000;
+      transition: top var(--transition);
+    }
+    .skip-to-content:focus { top: 0; }
+
+    /* ============ Aurora 背景 ============ */
+    .aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+    .blob-1 {
+      width: 600px; height: 600px;
+      background: var(--glow-primary);
+      top: -10%; left: -5%;
+      animation: aurora-drift-1 16s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 500px; height: 500px;
+      background: var(--glow-cyan);
+      top: 20%; right: -8%;
+      animation: aurora-drift-2 20s ease-in-out infinite -4s;
+    }
+    .blob-3 {
+      width: 450px; height: 450px;
+      background: var(--glow-accent);
+      bottom: 10%; left: 30%;
+      animation: aurora-drift-3 14s ease-in-out infinite -8s;
+    }
+    @keyframes aurora-drift-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(80px, -40px) scale(1.08); }
+      50% { transform: translate(-30px, 60px) scale(0.95); }
+      75% { transform: translate(50px, 30px) scale(1.05); }
+    }
+    @keyframes aurora-drift-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(-60px, 50px) scale(1.05); }
+      50% { transform: translate(40px, -20px) scale(1.1); }
+      75% { transform: translate(-20px, -60px) scale(0.92); }
+    }
+    @keyframes aurora-drift-3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(70px, 40px) scale(1.06); }
+      66% { transform: translate(-50px, -30px) scale(0.94); }
+    }
+
+    /* ============ 鼠标光晕 ============ */
+    .cursor-glow {
+      position: fixed;
+      width: 360px; height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(82, 135, 255, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    @media (hover: hover) { .cursor-glow { opacity: 1; } }
+
+    /* ============ 导航栏 ============ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      transition: all var(--transition);
+      background: rgba(11, 17, 32, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(11, 17, 32, 0.85);
+      border-bottom-color: var(--border-glass);
+      padding: 10px 0;
+    }
+    .nav-container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--fg-primary);
+    }
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--grad-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-glow);
+    }
+    .nav-logo-icon img { width: 28px; height: 28px; border-radius: 4px; }
+    .nav-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--fg-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--transition);
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 50%;
+      width: 0; height: 2px;
+      background: var(--color-primary-400);
+      transition: all var(--transition);
+      border-radius: 1px;
+    }
+    .nav-links a:hover { color: var(--color-primary-300); }
+    .nav-links a:hover::after { width: 100%; left: 0; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .lang-switch {
+      display: flex;
+      gap: 4px;
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-full);
+      padding: 4px;
+    }
+    .lang-btn {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      color: var(--fg-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .lang-btn.active {
+      background: var(--grad-primary);
+      color: #fff;
+    }
+    .nav-cta {
+      padding: 8px 18px;
+      background: var(--grad-primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all var(--transition);
+      box-shadow: 0 0 20px rgba(51, 108, 255, 0.3);
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(51, 108, 255, 0.5); }
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--fg-primary);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* ============ Hero ============ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      color: var(--color-primary-300);
+      margin-bottom: 28px;
+      backdrop-filter: blur(10px);
+    }
+    .hero-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--color-cyan-400);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.3); }
+    }
+    .hero-title {
+      font-size: clamp(40px, 6vw, 76px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
+    }
+    .hero-title-line {
+      display: block;
+      background: var(--grad-hero-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: hero-line-in 0.8s ease forwards;
+      padding-left: 0;
+      padding-bottom: 0.08em;
+      overflow: visible;
+    }
+    .hero-title-line:nth-child(1) {
+      animation-delay: 0.1s;
+      padding-left: 0;
+    }
+    .hero-title-line:nth-child(2) {
+      animation-delay: 0.25s;
+      padding-left: clamp(40px, 5vw, 80px);
+    }
+    .hero-title-line:nth-child(3) {
+      animation-delay: 0.4s;
+      padding-left: clamp(80px, 10vw, 160px);
+    }
+    @keyframes hero-line-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-subtitle {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--fg-tertiary);
+      max-width: 540px;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+    .hero-subtitle strong {
+      color: var(--color-primary-300);
+      font-weight: 600;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all var(--transition);
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--grad-primary);
+      color: #fff;
+      box-shadow: var(--shadow-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(51, 108, 255, 0.5);
+    }
+    .btn-secondary {
+      background: var(--glass-bg);
+      color: var(--fg-primary);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(10px);
+    }
+    .btn-secondary:hover {
+      background: var(--glass-bg-hover);
+      border-color: var(--border-glass-hover);
+    }
+
+    /* 快捷键徽章 */
+    .shortcut-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      background: rgba(51, 108, 255, 0.08);
+      border: 1px solid rgba(51, 108, 255, 0.2);
+      border-radius: var(--radius-md);
+      position: relative;
+    }
+    .shortcut-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--color-primary-400);
+      animation: shortcut-pulse-ring 2s ease-out infinite;
+      pointer-events: none;
+    }
+    @keyframes shortcut-pulse-ring {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.08); }
+    }
+    kbd {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--color-primary-300);
+      border: 1px solid rgba(82, 135, 255, 0.3);
+    }
+    .shortcut-badge .plus { color: var(--fg-muted); font-size: 14px; }
+    .shortcut-hint { color: var(--fg-muted); font-size: 14px; margin-left: 4px; }
+
+    /* Hero 右侧视觉 */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-icon-wrap {
+      position: relative;
+      width: 320px; height: 320px;
+    }
+    .hero-icon-glow {
+      position: absolute;
+      inset: -40px;
+      background: radial-gradient(circle, var(--glow-primary) 0%, transparent 70%);
+      filter: blur(40px);
+      animation: icon-glow-pulse 4s ease-in-out infinite;
+    }
+    @keyframes icon-glow-pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    .hero-icon {
+      position: relative;
+      width: 100%; height: 100%;
+      border-radius: 56px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 80px rgba(51, 108, 255, 0.3);
+      animation: icon-float 6s ease-in-out infinite;
+    }
+    .hero-icon img { width: 100%; height: 100%; object-fit: cover; }
+    @keyframes icon-float {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-20px) rotate(2deg); }
+    }
+
+    /* 浮动装饰卡片 */
+    .float-card {
+      position: absolute;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--fg-secondary);
+      box-shadow: var(--shadow-md);
+      --rot: 0deg;
+      --float-y: 0px;
+      transform: rotate(var(--rot)) translateY(var(--float-y));
+      animation: float-card-anim 5s ease-in-out infinite;
+      will-change: transform;
+    }
+    .float-card-1 {
+      top: -4%; left: -22%;
+      --rot: -8deg;
+      animation-delay: 0s;
+    }
+    .float-card-2 {
+      bottom: 2%; right: -22%;
+      --rot: 6deg;
+      animation-delay: -2.5s;
+    }
+    .float-card-3 {
+      top: 48%; right: -28%;
+      --rot: -3deg;
+      animation-delay: -1s;
+    }
+    @keyframes float-card-anim {
+      0%, 100% { transform: rotate(var(--rot)) translateY(0); }
+      50% { transform: rotate(var(--rot)) translateY(-14px); }
+    }
+    .float-card .label { color: var(--color-cyan-400); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ============ Stats Marquee ============ */
+    .marquee {
+      padding: 20px 0;
+      background: var(--bg-dark-secondary);
+      border-top: 1px solid var(--border-glass);
+      border-bottom: 1px solid var(--border-glass);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+    }
+    .marquee-track {
+      display: flex;
+      flex-shrink: 0;
+      white-space: nowrap;
+      animation: marquee-scroll 40s linear infinite;
+      will-change: transform;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-group {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      padding-right: 36px;
+      flex-shrink: 0;
+    }
+    @keyframes marquee-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-primary-300);
+    }
+    .marquee-item .num {
+      font-size: 24px;
+      font-weight: 800;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .marquee-dot { color: var(--color-cyan-400); font-size: 18px; line-height: 1; }
+
+    /* ============ Section 通用 ============ */
+    .section {
+      padding: 100px 24px;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-tag {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-cyan-400);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    .section-title .accent {
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .section-desc {
+      font-size: 16px;
+      color: var(--fg-tertiary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ============ How It Works ============ */
+    .timeline {
+      position: relative;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .timeline-line {
+      position: absolute;
+      left: 40px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--color-primary-500), var(--color-cyan-400), transparent);
+    }
+    .timeline-step {
+      position: relative;
+      padding-left: 96px;
+      padding-bottom: 48px;
+    }
+    .timeline-step:last-child { padding-bottom: 0; }
+    .timeline-num {
+      position: absolute;
+      left: 16px;
+      top: 0;
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--grad-primary);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-glow);
+      z-index: 1;
+    }
+    .timeline-content {
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      transition: all var(--transition);
+    }
+    .timeline-content:hover {
+      border-color: var(--border-glass-hover);
+      transform: translateX(4px);
+    }
+    .timeline-icon { font-size: 28px; margin-bottom: 8px; }
+    .timeline-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .timeline-desc { font-size: 14px; color: var(--fg-tertiary); line-height: 1.6; }
+    .timeline-kbd {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 10px;
+      background: rgba(51, 108, 255, 0.1);
+      border: 1px solid rgba(51, 108, 255, 0.2);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-primary-300);
+    }
+
+    /* ============ Features Grid ============ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      backdrop-filter: blur(10px);
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--grad-primary);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-glass-hover);
+      background: var(--glass-bg-hover);
+      box-shadow: var(--shadow-lg);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+    .feature-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--fg-tertiary);
+      line-height: 1.6;
+    }
+    .feature-tag {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 2px 10px;
+      background: rgba(0, 200, 218, 0.1);
+      border: 1px solid rgba(0, 200, 218, 0.2);
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      color: var(--color-cyan-300);
+      font-weight: 500;
+    }
+
+    /* ============ Feature Deep-Dive ============ */
+    .deep-dive {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+    .deep-dive:nth-child(even) .deep-dive-visual { order: 2; }
+    .deep-dive-visual {
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+    .deep-dive-visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, var(--glow-primary), transparent 60%);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .mock-window {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+    }
+    .mock-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: var(--bg-dark-secondary);
+      border-bottom: 1px solid var(--border-glass);
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-dot.red { background: #FF5F57; }
+    .mock-dot.yellow { background: #FEBC2E; }
+    .mock-dot.green { background: #28C840; }
+    .mock-title {
+      margin-left: 12px;
+      font-size: 12px;
+      color: var(--fg-muted);
+      font-family: var(--font-mono);
+    }
+    .mock-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--fg-secondary);
+      line-height: 1.7;
+      min-height: 200px;
+    }
+    .mock-body .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--color-primary-400);
+      animation: blink 1s steps(2) infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .mock-body .md-h { color: var(--color-primary-300); font-weight: 600; }
+    .mock-body .md-code { color: var(--color-cyan-300); }
+    .mock-body .md-quote { color: var(--color-accent-light); font-style: italic; }
+    .mock-badge {
+      position: absolute;
+      top: 16px; right: 16px;
+      padding: 4px 10px;
+      background: rgba(0, 200, 218, 0.15);
+      border: 1px solid rgba(0, 200, 218, 0.3);
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      color: var(--color-cyan-300);
+      font-weight: 600;
+    }
+    .deep-dive-text .section-tag { text-align: left; }
+    .deep-dive-text .section-title { text-align: left; }
+    .deep-dive-text p {
+      color: var(--fg-tertiary);
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+    .deep-dive-list {
+      list-style: none;
+      margin-top: 16px;
+    }
+    .deep-dive-list li {
+      padding: 8px 0 8px 28px;
+      position: relative;
+      color: var(--fg-secondary);
+      font-size: 14px;
+    }
+    .deep-dive-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--color-cyan-400);
+      font-weight: 700;
+    }
+
+    /* ============ Full Feature Table ============ */
+    .feature-table-wrap {
+      background: var(--glass-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    .feature-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .feature-table th {
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-cyan-400);
+      background: var(--bg-dark-secondary);
+      border-bottom: 1px solid var(--border-glass);
+    }
+    .feature-table td {
+      padding: 14px 20px;
+      font-size: 14px;
+      color: var(--fg-secondary);
+      border-bottom: 1px solid rgba(51, 108, 255, 0.06);
+    }
+    .feature-table tr:last-child td { border-bottom: none; }
+    .feature-table tr:hover td { background: rgba(51, 108, 255, 0.04); }
+    .feature-table .cat {
+      font-weight: 600;
+      color: var(--color-primary-300);
+    }
+    .feature-table .feat { font-weight: 500; color: var(--fg-primary); }
+    .feature-table-wrap::-webkit-scrollbar { height: 6px; }
+    .feature-table-wrap::-webkit-scrollbar-thumb { background: var(--border-glass-hover); border-radius: 3px; }
+
+    /* ============ Download CTA ============ */
+    .cta-section {
+      position: relative;
+      padding: 100px 24px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-accent) 100%);
+    }
+    .cta-container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-title {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .cta-desc {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 40px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .platform-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .platform-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 28px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-md);
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      transition: all var(--transition);
+    }
+    .platform-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .platform-btn .icon { font-size: 20px; }
+
+    /* ============ Footer ============ */
+    footer {
+      padding: 60px 24px 40px;
+      border-top: 1px solid var(--border-glass);
+      background: var(--bg-dark);
+    }
+    .footer-container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 40px;
+    }
+    .footer-brand .nav-logo { margin-bottom: 16px; }
+    .footer-desc {
+      font-size: 13px;
+      color: var(--fg-muted);
+      line-height: 1.7;
+      max-width: 320px;
+    }
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--fg-primary);
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin-bottom: 8px; }
+    .footer-col a {
+      font-size: 13px;
+      color: var(--fg-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .footer-col a:hover { color: var(--color-primary-300); }
+    .footer-bottom {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-glass);
+      text-align: center;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .footer-bottom .aos-link {
+      color: var(--color-primary-300);
+      text-decoration: none;
+    }
+    .footer-bottom .aos-link:hover { text-decoration: underline; }
+
+    /* ============ 滚动入场 ============ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px) scale(0.96);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ============ 精细化动效 ============ */
+    /* 导航栏滚动进度条 */
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--grad-cyan);
+      z-index: 1001;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px var(--color-cyan-400);
+    }
+
+    /* Section tag 呼吸动画 */
+    .section-tag {
+      position: relative;
+      padding: 4px 12px;
+      border: 1px solid rgba(0, 200, 218, 0.25);
+      border-radius: var(--radius-full);
+      background: rgba(0, 200, 218, 0.05);
+    }
+    .section-tag::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--color-cyan-400);
+      margin-right: 8px;
+      vertical-align: middle;
+      box-shadow: 0 0 8px var(--color-cyan-400);
+      animation: tag-breathe 2s ease-in-out infinite;
+    }
+    @keyframes tag-breathe {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* Feature card 流光扫过 */
+    .feature-card { isolation: isolate; }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -120%;
+      width: 80%; height: 100%;
+      background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(82, 135, 255, 0.08) 45%,
+        rgba(0, 200, 218, 0.12) 50%,
+        rgba(82, 135, 255, 0.08) 55%,
+        transparent 100%);
+      transform: skewX(-20deg);
+      transition: left 0.7s ease;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .feature-card:hover::after { left: 130%; }
+    .feature-card > * { position: relative; z-index: 1; }
+
+    /* Feature icon hover 弹跳 */
+    .feature-icon {
+      display: inline-block;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .feature-card:hover .feature-icon {
+      transform: scale(1.15) rotate(-6deg);
+    }
+
+    /* Timeline 连线流光 */
+    .timeline-line::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -1px;
+      width: 4px;
+      height: 60px;
+      background: linear-gradient(to bottom,
+        transparent,
+        var(--color-cyan-300),
+        var(--color-primary-300),
+        transparent);
+      filter: blur(2px);
+      animation: timeline-flow 3s ease-in-out infinite;
+      box-shadow: 0 0 12px var(--color-cyan-400);
+    }
+    @keyframes timeline-flow {
+      0% { top: -60px; opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* Timeline num 脉冲环 */
+    .timeline-num::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid var(--color-primary-400);
+      opacity: 0;
+      animation: num-ring 2.4s ease-out infinite;
+    }
+    @keyframes num-ring {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.4); }
+    }
+
+    /* Deep-dive mock window 顶部光晕 */
+    .deep-dive-visual {
+      transition: transform var(--transition), border-color var(--transition);
+    }
+    .deep-dive-visual:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-glass-hover);
+    }
+    .deep-dive-visual:hover::before {
+      opacity: 0.5;
+      transition: opacity 0.4s;
+    }
+
+    /* Mock body 光标闪烁增强 */
+    .mock-body .cursor-blink {
+      box-shadow: 0 0 6px var(--color-primary-400);
+    }
+
+    /* CTA 按钮光波 */
+    .platform-btn { position: relative; overflow: hidden; }
+    .platform-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      transform: translate(-50%, -50%);
+      transition: width 0.5s ease, height 0.5s ease;
+    }
+    .platform-btn:hover::before {
+      width: 300px; height: 300px;
+    }
+    .platform-btn > * { position: relative; z-index: 1; }
+
+    /* Feature table 行 hover 渐入 */
+    .feature-table tbody tr {
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .feature-table tbody tr:hover {
+      transform: translateX(4px);
+    }
+
+    /* Hero CTA 按钮 hover 光晕扩散 */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center,
+        rgba(255, 255, 255, 0.2) 0%,
+        transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .btn-primary:hover::after { opacity: 1; }
+
+    /* 浮动卡片 hover 增强 */
+    .float-card { transition: box-shadow 0.3s, border-color 0.3s; cursor: default; }
+    .float-card:hover {
+      border-color: var(--border-glass-hover);
+      box-shadow: 0 8px 24px rgba(51, 108, 255, 0.2);
+    }
+
+    /* Reveal 入场增加模糊效果 */
+    .reveal {
+      filter: blur(8px);
+      transition: opacity 0.8s ease, transform 0.8s ease, filter 0.8s ease;
+    }
+    .reveal.visible {
+      filter: blur(0);
+    }
+
+    /* Hero badge dot 拖尾 */
+    .hero-badge .dot {
+      box-shadow: 0 0 0 0 rgba(0, 200, 218, 0.6);
+      animation: dot-pulse 2s infinite, pulse 2s infinite;
+    }
+    @keyframes dot-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 200, 218, 0.6); }
+      70% { box-shadow: 0 0 0 8px rgba(0, 200, 218, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 200, 218, 0); }
+    }
+
+    /* ============ 响应式 ============ */
+    /* 高分辨率屏幕 ≥1440px */
+    @media (min-width: 1440px) {
+      :root { --max-width: 1320px; }
+      .hero-title { font-size: clamp(48px, 5vw, 88px); }
+      .hero-icon-wrap { width: 360px; height: 360px; }
+      .section { padding: 120px 32px; }
+      .features-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+    }
+    /* 全高清 ≥1920px */
+    @media (min-width: 1920px) {
+      :root { --max-width: 1480px; }
+      .hero-title { font-size: clamp(56px, 4.5vw, 104px); }
+      .hero-icon-wrap { width: 420px; height: 420px; }
+      .section { padding: 140px 40px; }
+      .features-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 32px; }
+      .section-title { font-size: clamp(32px, 3.5vw, 52px); }
+      .nav-logo-text { font-size: 22px; }
+      .nav-logo-icon { width: 40px; height: 40px; }
+      .nav-logo-icon img { width: 32px; height: 32px; }
+    }
+    /* 2K / 4K ≥2560px */
+    @media (min-width: 2560px) {
+      :root { --max-width: 1680px; }
+      .hero-title { font-size: clamp(64px, 4vw, 128px); }
+      .hero-icon-wrap { width: 480px; height: 480px; }
+      .section { padding: 160px 48px; }
+      body { font-size: 17px; }
+      .feature-card { padding: 36px 30px; }
+      .mock-body { font-size: 15px; min-height: 240px; }
+    }
+
+    /* 平板 ≤900px */
+    @media (max-width: 900px) {
+      .hero-container { grid-template-columns: 1fr; text-align: center; }
+      .hero-visual { order: -1; margin-bottom: 24px; }
+      .hero-badge, .hero-cta, .shortcut-badge { justify-content: center; }
+      .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .hero-title-line:nth-child(2) { padding-left: clamp(20px, 4vw, 60px); }
+      .hero-title-line:nth-child(3) { padding-left: clamp(40px, 8vw, 120px); }
+      .deep-dive { grid-template-columns: 1fr; gap: 32px; }
+      .deep-dive:nth-child(even) .deep-dive-visual { order: 0; }
+      .footer-container { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .float-card-1 { left: -10%; }
+      .float-card-2 { right: -10%; }
+      .float-card-3 { right: -14%; }
+    }
+    /* 手机 ≤768px */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        flex-direction: column;
+        background: rgba(11, 17, 32, 0.95);
+        padding: 24px;
+        gap: 16px;
+        border-bottom: 1px solid var(--border-glass);
+      }
+      .nav-cta { display: none; }
+      .nav-container { padding: 0 16px; }
+      .lang-switch .lang-btn { padding: 5px 10px; font-size: 12px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .timeline-step { padding-left: 80px; }
+      .timeline-line { left: 24px; }
+      .timeline-num { left: 0; }
+      .footer-container { grid-template-columns: 1fr; }
+      .hero-icon-wrap { width: 220px; height: 220px; }
+      .hero { padding: 100px 16px 60px; }
+      .section { padding: 70px 16px; }
+      .hero-title-line:nth-child(2) { padding-left: clamp(16px, 4vw, 40px); }
+      .hero-title-line:nth-child(3) { padding-left: clamp(32px, 8vw, 80px); }
+      .float-card { font-size: 11px; padding: 8px 10px; }
+      .float-card-1 { top: -2%; left: -8%; }
+      .float-card-2 { bottom: 0%; right: -8%; }
+      .float-card-3 { top: 50%; right: -12%; }
+      .feature-table th, .feature-table td { padding: 12px 14px; font-size: 13px; }
+      .cta-section { padding: 70px 16px; }
+      .platform-btn { padding: 12px 20px; font-size: 14px; }
+      .deep-dive-visual { padding: 20px; }
+      .mock-body { font-size: 12px; padding: 14px; }
+    }
+    /* 小屏手机 ≤480px */
+    @media (max-width: 480px) {
+      .hero-title { font-size: clamp(34px, 9vw, 48px); }
+      .hero-subtitle { font-size: 14px; }
+      .btn { padding: 12px 20px; font-size: 14px; width: 100%; justify-content: center; }
+      .hero-cta { gap: 10px; }
+      .shortcut-badge { padding: 8px 14px; font-size: 12px; }
+      kbd { padding: 3px 8px; font-size: 11px; }
+      .section-title { font-size: clamp(24px, 7vw, 32px); }
+      .section-tag { font-size: 11px; }
+      .timeline-step { padding-left: 60px; padding-bottom: 32px; }
+      .timeline-num { width: 40px; height: 40px; font-size: 16px; left: -4px; }
+      .timeline-line { left: 16px; }
+      .hero-icon-wrap { width: 180px; height: 180px; }
+      .hero-icon { border-radius: 36px; }
+      .float-card { display: none; }
+      .footer-container { gap: 24px; }
+      .footer-brand .nav-logo { justify-content: center; }
+      .footer-desc { max-width: 100%; }
+      .platform-btn { width: 100%; }
+      .cta-title { font-size: clamp(26px, 8vw, 36px); }
+      .cta-desc { font-size: 14px; }
+    }
+    /* 横屏手机 ≤900px and (orientation: landscape) */
+    @media (max-width: 900px) and (orientation: landscape) {
+      .hero { min-height: 100vh; padding: 90px 16px 40px; }
+      .hero-visual { order: -1; margin-bottom: 16px; }
+      .hero-icon-wrap { width: 160px; height: 160px; }
+      .float-card { display: none; }
+    }
+
+    /* 打印优化 */
+    @media print {
+      .aurora-bg, .cursor-glow, .marquee, .nav-actions, .lang-switch { display: none; }
+      body { background: #fff; color: #000; }
+      nav { position: static; background: #fff; border-bottom: 1px solid #ccc; }
+    }
+
+    /* 减少动画偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .aurora-blob, .hero-icon, .float-card, .cursor-glow, .shortcut-pulse { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+  <div class="aurora-bg" aria-hidden="true">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+  </div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <!-- 导航 -->
+  <nav>
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon"><img src="icon.png" alt="OncePad"></div>
+        <span class="nav-logo-text">OncePad</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#how" data-i18n="nav_how">How it works</a>
+        <a href="#features" data-i18n="nav_features">Features</a>
+        <a href="#deep-dive" data-i18n="nav_deep">In Depth</a>
+        <a href="#download" data-i18n="nav_download">Download</a>
+      </div>
+      <div class="nav-actions">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="zh">中</button>
+        </div>
+        <a href="#download" class="nav-cta" data-i18n="nav_cta">Get Free</a>
+        <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="main-content">
+    <div class="hero-container">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          <span data-i18n="hero_badge">Open Source · GPL-3.0</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="hero-title-line" data-i18n="hero_t1">Think It.</span>
+          <span class="hero-title-line" data-i18n="hero_t2">Type It.</span>
+          <span class="hero-title-line" data-i18n="hero_t3">Paste It.</span>
+        </h1>
+        <p class="hero-subtitle" data-i18n="hero_sub">
+          A lightweight scratchpad that appears instantly. Press <strong>Alt+Q</strong>, type anything, press again — your text is <strong>copied to clipboard</strong>, ready to paste anywhere.
+        </p>
+        <div class="hero-cta">
+          <a href="#download" class="btn btn-primary" data-i18n="hero_cta1">Download Free</a>
+          <a href="https://github.com/MagicalYuYu/OncePad" target="_blank" rel="noopener" class="btn btn-secondary" data-i18n="hero_cta2">View Source</a>
+        </div>
+        <div class="shortcut-badge">
+          <div class="shortcut-pulse"></div>
+          <kbd>Alt</kbd>
+          <span class="plus">+</span>
+          <kbd>Q</kbd>
+          <span class="shortcut-hint" data-i18n="hero_hint">to summon</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-icon-wrap">
+          <div class="hero-icon-glow"></div>
+          <div class="hero-icon">
+            <img src="icon.png" alt="OncePad App Icon">
+          </div>
+          <div class="float-card float-card-1">
+            <div class="label">Auto-Copy</div>
+            <div data-i18n="float_1">Copied to clipboard ✓</div>
+          </div>
+          <div class="float-card float-card-2">
+            <div class="label">Markdown</div>
+            <div data-i18n="float_2">Live preview</div>
+          </div>
+          <div class="float-card float-card-3">
+            <div class="label">11 Langs</div>
+            <div data-i18n="float_3">i18n ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <div class="marquee-group">
+        <div class="marquee-item"><span class="num">11</span> <span data-i18n="m1">Languages</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">3</span> <span data-i18n="m2">Platforms</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">0</span> <span data-i18n="m3">Dependencies</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">1</span> <span data-i18n="m4">Shortcut</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item">GPL-3.0</div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item" data-i18n="m5">Open Source</div>
+      </div>
+      <div class="marquee-group" aria-hidden="true">
+        <div class="marquee-item"><span class="num">11</span> <span data-i18n="m1">Languages</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">3</span> <span data-i18n="m2">Platforms</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">0</span> <span data-i18n="m3">Dependencies</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item"><span class="num">1</span> <span data-i18n="m4">Shortcut</span></div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item">GPL-3.0</div>
+        <span class="marquee-dot">·</span>
+        <div class="marquee-item" data-i18n="m5">Open Source</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <section class="section" id="how">
+    <div class="section-header reveal">
+      <span class="section-tag">WORKFLOW</span>
+      <h2 class="section-title" data-i18n="how_title">Three steps. <span class="accent">No friction.</span></h2>
+      <p class="section-desc" data-i18n="how_desc">No save dialog. No file management. Just type and go.</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-line"></div>
+      <div class="timeline-step reveal">
+        <div class="timeline-num">1</div>
+        <div class="timeline-content">
+          <div class="timeline-icon">⚡</div>
+          <h3 class="timeline-title" data-i18n="how_1_t">Summon</h3>
+          <p class="timeline-desc" data-i18n="how_1_d">Press the global shortcut from any application. OncePad appears instantly — no alt-tabbing, no mouse hunting.</p>
+          <span class="timeline-kbd">Alt + Q</span>
+        </div>
+      </div>
+      <div class="timeline-step reveal">
+        <div class="timeline-num">2</div>
+        <div class="timeline-content">
+          <div class="timeline-icon">📝</div>
+          <h3 class="timeline-title" data-i18n="how_2_t">Type</h3>
+          <p class="timeline-desc" data-i18n="how_2_d">Write your draft, AI prompt, or quick note. Markdown supported. Auto-saved as draft. Full editing power at your fingertips.</p>
+          <span class="timeline-kbd" data-i18n="how_2_k">Auto-save · Markdown</span>
+        </div>
+      </div>
+      <div class="timeline-step reveal">
+        <div class="timeline-num">3</div>
+        <div class="timeline-content">
+          <div class="timeline-icon">📋</div>
+          <h3 class="timeline-title" data-i18n="how_3_t">Paste</h3>
+          <p class="timeline-desc" data-i18n="how_3_d">Press the shortcut again. Window hides — text is already on your clipboard. Paste anywhere. Done.</p>
+          <span class="timeline-kbd" data-i18n="how_3_k">Auto-copy on hide</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section" id="features">
+    <div class="section-header reveal">
+      <span class="section-tag">FEATURES</span>
+      <h2 class="section-title" data-i18n="feat_title">Built for <span class="accent">speed and focus</span></h2>
+      <p class="section-desc" data-i18n="feat_desc">Everything you need to capture thoughts instantly. Nothing you don't.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title" data-i18n="f1_t">Instant Toggle</h3>
+        <p class="feature-desc" data-i18n="f1_d">Global shortcut brings up the editor from any app. Dismiss just as fast.</p>
+        <span class="feature-tag">Core</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📋</div>
+        <h3 class="feature-title" data-i18n="f2_t">Auto-Copy on Hide</h3>
+        <p class="feature-desc" data-i18n="f2_d">Text is copied to clipboard the moment the window hides — no extra steps.</p>
+        <span class="feature-tag">Core</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🗂️</div>
+        <h3 class="feature-title" data-i18n="f3_t">Workspaces</h3>
+        <p class="feature-desc" data-i18n="f3_d">Organize notes into separate workspaces for different contexts.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🏷️</div>
+        <h3 class="feature-title" data-i18n="f4_t">Tags & Colors</h3>
+        <p class="feature-desc" data-i18n="f4_d">Label notes with tags and 6 distinct colors for easy filtering.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📝</div>
+        <h3 class="feature-title" data-i18n="f5_t">Markdown Support</h3>
+        <p class="feature-desc" data-i18n="f5_d">Full Markdown rendering with live preview toggle. Code/Reading mode switch.</p>
+        <span class="feature-tag">Editor</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔢</div>
+        <h3 class="feature-title" data-i18n="f6_t">Line Numbers & Outline</h3>
+        <p class="feature-desc" data-i18n="f6_d">Optional line numbers (logical or visual) and quick heading navigation.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌐</div>
+        <h3 class="feature-title" data-i18n="f7_t">11 Languages</h3>
+        <p class="feature-desc" data-i18n="f7_d">zh-CN / zh-TW / en / ja / ko / de / fr / es / pt-BR / ru / it</p>
+        <span class="feature-tag">i18n</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🌙</div>
+        <h3 class="feature-title" data-i18n="f8_t">Dark / Light Theme</h3>
+        <p class="feature-desc" data-i18n="f8_d">Toggle between dark and light modes. UI scaling 80%-150%.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📜</div>
+        <h3 class="feature-title" data-i18n="f9_t">History & Trash</h3>
+        <p class="feature-desc" data-i18n="f9_d">Past entries auto-saved (up to 100). Trash with configurable cleanup.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📖</div>
+        <h3 class="feature-title" data-i18n="f10_t">File Viewer</h3>
+        <p class="feature-desc" data-i18n="f10_d">Open .txt / .md files as a lightweight reader. Markdown rendered instantly — perfect for quick reading without a full editor.</p>
+        <span class="feature-tag" data-i18n="ft_viewer">Reader</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🔤</div>
+        <h3 class="feature-title" data-i18n="f11_t">Font Customization</h3>
+        <p class="feature-desc" data-i18n="f11_d">Separate EN / CN fonts, adjustable size, line height, and padding. Tailor the typography to your eyes.</p>
+        <span class="feature-tag" data-i18n="ft_type">Editor</span>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">🎛️</div>
+        <h3 class="feature-title" data-i18n="f12_t">Navbar Customization</h3>
+        <p class="feature-desc" data-i18n="f12_d">Show or hide 6 titlebar buttons — pin, color, new, copy, notes, settings. Your workspace, your layout.</p>
+        <span class="feature-tag" data-i18n="ft_ui">UI</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep-Dive: Markdown Editor -->
+  <section class="section" id="deep-dive">
+    <div class="section-header reveal">
+      <span class="section-tag">IN DEPTH</span>
+      <h2 class="section-title" data-i18n="deep_title">A real editor, <span class="accent">not just a text box</span></h2>
+    </div>
+
+    <div class="deep-dive reveal">
+      <div class="deep-dive-visual">
+        <div class="mock-window">
+          <div class="mock-titlebar">
+            <div class="mock-dot red"></div>
+            <div class="mock-dot yellow"></div>
+            <div class="mock-dot green"></div>
+            <div class="mock-title">OncePad — Draft</div>
+            <div class="mock-badge">Markdown</div>
+          </div>
+          <div class="mock-body">
+<span class="md-h"># Project Notes</span>
+
+<span class="md-quote">> Quick draft for the AI prompt</span>
+
+- [x] <span data-i18n="mock_1">Setup repo</span>
+- [ ] <span data-i18n="mock_2">Write README</span>
+- [ ] <span data-i18n="mock_3">Deploy to Pages</span>
+
+<span class="md-code">```js
+console.log('Hello OncePad');
+```</span>
+
+<span data-i18n="mock_4">Typing here...</span><span class="cursor-blink"></span>
+          </div>
+        </div>
+      </div>
+      <div class="deep-dive-text">
+        <span class="section-tag">EDITOR</span>
+        <h3 class="section-title" data-i18n="deep_1_t">Markdown with <span class="accent">live preview</span></h3>
+        <p data-i18n="deep_1_d">Write in Markdown with instant rendering. Toggle between editing and reading modes. Code blocks, lists, quotes, headings — all supported.</p>
+        <ul class="deep-dive-list">
+          <li data-i18n="deep_1_l1">Full Markdown rendering (markdown-it)</li>
+          <li data-i18n="deep_1_l2">Code / Reading mode switch</li>
+          <li data-i18n="deep_1_l3">Document outline via headings</li>
+          <li data-i18n="deep_1_l4">Minimap for fast scrolling (experimental)</li>
+          <li data-i18n="deep_1_l5">Separate EN/CN fonts, adjustable size & line height</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="deep-dive reveal">
+      <div class="deep-dive-visual">
+        <div class="mock-window">
+          <div class="mock-titlebar">
+            <div class="mock-dot red"></div>
+            <div class="mock-dot yellow"></div>
+            <div class="mock-dot green"></div>
+            <div class="mock-title">OncePad — Settings</div>
+            <div class="mock-badge">i18n</div>
+          </div>
+          <div class="mock-body">
+<span class="md-h">🌐 Language</span>
+<span class="md-code">简体中文 / 繁體中文 / English</span>
+<span class="md-code">日本語 / 한국어 / Deutsch</span>
+<span class="md-code">Français / Español / Português</span>
+<span class="md-code">Русский / Italiano</span>
+
+<span class="md-h">🎨 Theme</span>
+<span class="md-code">Dark · Light</span>
+
+<span class="md-h">🔤 Font</span>
+<span class="md-code">EN: JetBrains Mono</span>
+<span class="md-code">CN: Noto Sans SC</span>
+          </div>
+        </div>
+      </div>
+      <div class="deep-dive-text">
+        <span class="section-tag">LOCALIZATION</span>
+        <h3 class="section-title" data-i18n="deep_2_t">11 languages, <span class="accent">fully localized</span></h3>
+        <p data-i18n="deep_2_d">OncePad speaks your language. Every UI string, every setting, every tooltip — localized across 11 languages. Powered by i18next.</p>
+        <ul class="deep-dive-list">
+          <li data-i18n="deep_2_l1">Separate EN/CN font configuration</li>
+          <li data-i18n="deep_2_l2">Adjustable font size, line height, padding</li>
+          <li data-i18n="deep_2_l3">UI scaling 80% — 150%</li>
+          <li data-i18n="deep_2_l4">Navbar button customization (show/hide 6 buttons)</li>
+          <li data-i18n="deep_2_l5">Configurable global shortcuts</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Full Feature Table -->
+  <section class="section">
+    <div class="section-header reveal">
+      <span class="section-tag">COMPLETE LIST</span>
+      <h2 class="section-title" data-i18n="table_title">Full <span class="accent">feature matrix</span></h2>
+      <p class="section-desc" data-i18n="table_desc">25+ features across 6 categories. All free, all open source.</p>
+    </div>
+    <div class="feature-table-wrap reveal" style="overflow-x: auto;">
+      <table class="feature-table">
+        <thead>
+          <tr>
+            <th data-i18n="th_cat">Category</th>
+            <th data-i18n="th_feat">Feature</th>
+            <th data-i18n="th_desc">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="cat" data-i18n="cat_core">Core</td><td class="feat" data-i18n="tf1">Instant Toggle</td><td data-i18n="td1">Global shortcut from any app</td></tr>
+          <tr><td class="cat" data-i18n="cat_core">Core</td><td class="feat" data-i18n="tf2">Auto-Copy on Hide</td><td data-i18n="td2">Clipboard on window dismiss</td></tr>
+          <tr><td class="cat" data-i18n="cat_core">Core</td><td class="feat" data-i18n="tf3">History</td><td data-i18n="td3">Auto-saved past entries (up to 100)</td></tr>
+          <tr><td class="cat" data-i18n="cat_notes">Notes</td><td class="feat" data-i18n="tf4">Workspaces</td><td data-i18n="td4">Separate contexts</td></tr>
+          <tr><td class="cat" data-i18n="cat_notes">Notes</td><td class="feat" data-i18n="tf5">Tags & Colors</td><td data-i18n="td5">6 colors for categorization</td></tr>
+          <tr><td class="cat" data-i18n="cat_notes">Notes</td><td class="feat" data-i18n="tf6">Pin to Top</td><td data-i18n="td6">Keep important notes accessible</td></tr>
+          <tr><td class="cat" data-i18n="cat_notes">Notes</td><td class="feat" data-i18n="tf7">Trash</td><td data-i18n="td7">Auto-cleanup 1/2/3/7 days</td></tr>
+          <tr><td class="cat" data-i18n="cat_edit">Editor</td><td class="feat" data-i18n="tf8">Markdown</td><td data-i18n="td8">Full rendering + live preview</td></tr>
+          <tr><td class="cat" data-i18n="cat_edit">Editor</td><td class="feat" data-i18n="tf9">Code/Reading Mode</td><td data-i18n="td9">Switch editing/reading views</td></tr>
+          <tr><td class="cat" data-i18n="cat_edit">Editor</td><td class="feat" data-i18n="tf10">Line Numbers</td><td data-i18n="td10">Logical or visual mode</td></tr>
+          <tr><td class="cat" data-i18n="cat_edit">Editor</td><td class="feat" data-i18n="tf11">Outline & Minimap</td><td data-i18n="td11">Quick nav + overview</td></tr>
+          <tr><td class="cat" data-i18n="cat_edit">Editor</td><td class="feat" data-i18n="tf12">Font Customization</td><td data-i18n="td12">Separate EN/CN, size, line height</td></tr>
+          <tr><td class="cat" data-i18n="cat_i18n">i18n</td><td class="feat" data-i18n="tf13">11 Languages</td><td data-i18n="td13">zh/en/ja/ko/de/fr/es/pt/ru/it</td></tr>
+          <tr><td class="cat" data-i18n="cat_ui">UI</td><td class="feat" data-i18n="tf14">Dark/Light Theme</td><td data-i18n="td14">Toggle modes</td></tr>
+          <tr><td class="cat" data-i18n="cat_ui">UI</td><td class="feat" data-i18n="tf15">UI Scaling</td><td data-i18n="td15">80% — 150%</td></tr>
+          <tr><td class="cat" data-i18n="cat_ui">UI</td><td class="feat" data-i18n="tf16">Navbar Customization</td><td data-i18n="td16">Show/hide 6 titlebar buttons</td></tr>
+          <tr><td class="cat" data-i18n="cat_win">Window</td><td class="feat" data-i18n="tf17">Always on Top</td><td data-i18n="td17">Keep above other apps</td></tr>
+          <tr><td class="cat" data-i18n="cat_win">Window</td><td class="feat" data-i18n="tf18">Auto-Launch</td><td data-i18n="td18">Start with system</td></tr>
+          <tr><td class="cat" data-i18n="cat_win">Window</td><td class="feat" data-i18n="tf19">Blur to Hide</td><td data-i18n="td19">Auto-hide on focus loss</td></tr>
+          <tr><td class="cat" data-i18n="cat_short">Shortcuts</td><td class="feat" data-i18n="tf20">Configurable</td><td data-i18n="td20">Toggle / New / Copy shortcuts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Download CTA -->
+  <section class="cta-section" id="download">
+    <div class="cta-container reveal">
+      <h2 class="cta-title" data-i18n="cta_title">Ready to think faster?</h2>
+      <p class="cta-desc" data-i18n="cta_desc">Free. Open source. No sign-up. No telemetry. Download and start in seconds.</p>
+      <div class="platform-buttons">
+        <a href="https://github.com/MagicalYuYu/OncePad/releases" target="_blank" rel="noopener" class="platform-btn">
+          <span class="icon">🪟</span>
+          <span>Windows</span>
+        </a>
+        <a href="https://github.com/MagicalYuYu/OncePad/releases" target="_blank" rel="noopener" class="platform-btn">
+          <span class="icon">🍎</span>
+          <span>macOS</span>
+        </a>
+        <a href="https://github.com/MagicalYuYu/OncePad/releases" target="_blank" rel="noopener" class="platform-btn">
+          <span class="icon">🐧</span>
+          <span>Linux</span>
+        </a>
+        <a href="https://github.com/MagicalYuYu/OncePad" target="_blank" rel="noopener" class="platform-btn">
+          <span class="icon">⚡</span>
+          <span data-i18n="cta_src">Build from Source</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">
+          <div class="nav-logo-icon"><img src="icon.png" alt="OncePad"></div>
+          <span class="nav-logo-text">OncePad</span>
+        </a>
+        <p class="footer-desc" data-i18n="foot_desc">A lightweight, always-available scratchpad for drafting messages, AI prompts, and quick notes.</p>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_doc">Docs</h4>
+        <ul>
+          <li><a href="https://github.com/MagicalYuYu/OncePad#readme" target="_blank" rel="noopener">README</a></li>
+          <li><a href="https://github.com/MagicalYuYu/OncePad/releases" target="_blank" rel="noopener" data-i18n="foot_rel">Releases</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_res">Resources</h4>
+        <ul>
+          <li><a href="https://github.com/MagicalYuYu/OncePad" target="_blank" rel="noopener" data-i18n="foot_repo">GitHub Repo</a></li>
+          <li><a href="https://github.com/MagicalYuYu/OncePad/issues" target="_blank" rel="noopener" data-i18n="foot_issue">Report Issue</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="foot_about">About</h4>
+        <ul>
+          <li><a href="https://github.com/MagicalYuYu/agent-operating-system" target="_blank" rel="noopener">Built with AOS</a></li>
+          <li><a href="https://github.com/lef237/one-time-editor" target="_blank" rel="noopener" data-i18n="foot_up">Upstream Project</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-i18n="foot_copy">© 2026 OncePad · MagicalYuYu · GPL-3.0 License · Built with AOS</span>
+    </div>
+  </footer>
+
+  <script>
+    // ===== i18n 国际化系统 =====
+    const i18n = {
+      en: {
+        doc_title: 'OncePad — The Instant Scratchpad',
+        nav_how: 'How it works', nav_features: 'Features', nav_deep: 'In Depth', nav_download: 'Download', nav_cta: 'Get Free',
+        hero_badge: 'Open Source · GPL-3.0',
+        hero_t1: 'Think It.', hero_t2: 'Type It.', hero_t3: 'Paste It.',
+        hero_sub: 'A lightweight scratchpad that appears instantly. Press <strong>Alt+Q</strong>, type anything, press again — your text is <strong>copied to clipboard</strong>, ready to paste anywhere.',
+        hero_cta1: 'Download Free', hero_cta2: 'View Source', hero_hint: 'to summon',
+        float_1: 'Copied to clipboard ✓', float_2: 'Live preview', float_3: 'i18n ready',
+        m1: 'Languages', m2: 'Platforms', m3: 'Dependencies', m4: 'Shortcut', m5: 'Open Source',
+        how_title: 'Three steps. <span class="accent">No friction.</span>',
+        how_desc: 'No save dialog. No file management. Just type and go.',
+        how_1_t: 'Summon', how_1_d: 'Press the global shortcut from any application. OncePad appears instantly — no alt-tabbing, no mouse hunting.',
+        how_2_t: 'Type', how_2_d: 'Write your draft, AI prompt, or quick note. Markdown supported. Auto-saved as draft. Full editing power at your fingertips.',
+        how_2_k: 'Auto-save · Markdown',
+        how_3_t: 'Paste', how_3_d: 'Press the shortcut again. Window hides — text is already on your clipboard. Paste anywhere. Done.',
+        how_3_k: 'Auto-copy on hide',
+        feat_title: 'Built for <span class="accent">speed and focus</span>',
+        feat_desc: 'Everything you need to capture thoughts instantly. Nothing you don\'t.',
+        f1_t: 'Instant Toggle', f1_d: 'Global shortcut brings up the editor from any app. Dismiss just as fast.',
+        f2_t: 'Auto-Copy on Hide', f2_d: 'Text is copied to clipboard the moment the window hides — no extra steps.',
+        f3_t: 'Workspaces', f3_d: 'Organize notes into separate workspaces for different contexts.',
+        f4_t: 'Tags & Colors', f4_d: 'Label notes with tags and 6 distinct colors for easy filtering.',
+        f5_t: 'Markdown Support', f5_d: 'Full Markdown rendering with live preview toggle. Code/Reading mode switch.',
+        f6_t: 'Line Numbers & Outline', f6_d: 'Optional line numbers (logical or visual) and quick heading navigation.',
+        f7_t: '11 Languages', f7_d: 'zh-CN / zh-TW / en / ja / ko / de / fr / es / pt-BR / ru / it',
+        f8_t: 'Dark / Light Theme', f8_d: 'Toggle between dark and light modes. UI scaling 80%-150%.',
+        f9_t: 'History & Trash', f9_d: 'Past entries auto-saved (up to 100). Trash with configurable cleanup.',
+        f10_t: 'File Viewer', f10_d: 'Open .txt / .md files as a lightweight reader. Markdown rendered instantly — perfect for quick reading without a full editor.',
+        f11_t: 'Font Customization', f11_d: 'Separate EN / CN fonts, adjustable size, line height, and padding. Tailor the typography to your eyes.',
+        f12_t: 'Navbar Customization', f12_d: 'Show or hide 6 titlebar buttons — pin, color, new, copy, notes, settings. Your workspace, your layout.',
+        ft_viewer: 'Reader', ft_type: 'Editor', ft_ui: 'UI',
+        deep_title: 'A real editor, <span class="accent">not just a text box</span>',
+        deep_1_t: 'Markdown with <span class="accent">live preview</span>',
+        deep_1_d: 'Write in Markdown with instant rendering. Toggle between editing and reading modes. Code blocks, lists, quotes, headings — all supported.',
+        deep_1_l1: 'Full Markdown rendering (markdown-it)',
+        deep_1_l2: 'Code / Reading mode switch',
+        deep_1_l3: 'Document outline via headings',
+        deep_1_l4: 'Minimap for fast scrolling (experimental)',
+        deep_1_l5: 'Separate EN/CN fonts, adjustable size & line height',
+        mock_1: 'Setup repo', mock_2: 'Write README', mock_3: 'Deploy to Pages', mock_4: 'Typing here...',
+        deep_2_t: '11 languages, <span class="accent">fully localized</span>',
+        deep_2_d: 'OncePad speaks your language. Every UI string, every setting, every tooltip — localized across 11 languages. Powered by i18next.',
+        deep_2_l1: 'Separate EN/CN font configuration',
+        deep_2_l2: 'Adjustable font size, line height, padding',
+        deep_2_l3: 'UI scaling 80% — 150%',
+        deep_2_l4: 'Navbar button customization (show/hide 6 buttons)',
+        deep_2_l5: 'Configurable global shortcuts',
+        table_title: 'Full <span class="accent">feature matrix</span>',
+        table_desc: '25+ features across 6 categories. All free, all open source.',
+        th_cat: 'Category', th_feat: 'Feature', th_desc: 'Description',
+        cat_core: 'Core', cat_notes: 'Notes', cat_edit: 'Editor', cat_i18n: 'i18n', cat_ui: 'UI', cat_win: 'Window', cat_short: 'Shortcuts',
+        tf1: 'Instant Toggle', td1: 'Global shortcut from any app',
+        tf2: 'Auto-Copy on Hide', td2: 'Clipboard on window dismiss',
+        tf3: 'History', td3: 'Auto-saved past entries (up to 100)',
+        tf4: 'Workspaces', td4: 'Separate contexts',
+        tf5: 'Tags & Colors', td5: '6 colors for categorization',
+        tf6: 'Pin to Top', td6: 'Keep important notes accessible',
+        tf7: 'Trash', td7: 'Auto-cleanup 1/2/3/7 days',
+        tf8: 'Markdown', td8: 'Full rendering + live preview',
+        tf9: 'Code/Reading Mode', td9: 'Switch editing/reading views',
+        tf10: 'Line Numbers', td10: 'Logical or visual mode',
+        tf11: 'Outline & Minimap', td11: 'Quick nav + overview',
+        tf12: 'Font Customization', td12: 'Separate EN/CN, size, line height',
+        tf13: '11 Languages', td13: 'zh/en/ja/ko/de/fr/es/pt/ru/it',
+        tf14: 'Dark/Light Theme', td14: 'Toggle modes',
+        tf15: 'UI Scaling', td15: '80% — 150%',
+        tf16: 'Navbar Customization', td16: 'Show/hide 6 titlebar buttons',
+        tf17: 'Always on Top', td17: 'Keep above other apps',
+        tf18: 'Auto-Launch', td18: 'Start with system',
+        tf19: 'Blur to Hide', td19: 'Auto-hide on focus loss',
+        tf20: 'Configurable', td20: 'Toggle / New / Copy shortcuts',
+        cta_title: 'Ready to think faster?',
+        cta_desc: 'Free. Open source. No sign-up. No telemetry. Download and start in seconds.',
+        cta_src: 'Build from Source',
+        foot_desc: 'A lightweight, always-available scratchpad for drafting messages, AI prompts, and quick notes.',
+        foot_doc: 'Docs', foot_rel: 'Releases', foot_res: 'Resources', foot_repo: 'GitHub Repo', foot_issue: 'Report Issue',
+        foot_about: 'About', foot_up: 'Upstream Project',
+        foot_copy: '© 2026 OncePad · MagicalYuYu · GPL-3.0 License · Built with AOS'
+      },
+      zh: {
+        doc_title: 'OncePad — 即时草稿本',
+        nav_how: '工作原理', nav_features: '功能', nav_deep: '深度解析', nav_download: '下载', nav_cta: '免费获取',
+        hero_badge: '开源 · GPL-3.0',
+        hero_t1: '想你所想。', hero_t2: '打你所要。', hero_t3: '贴你所需。',
+        hero_sub: '轻量便签本，随时召唤。按 <strong>Alt+Q</strong> 输入内容，再按一次 — 文本<strong>自动复制到剪贴板</strong>，随时粘贴使用。',
+        hero_cta1: '免费下载', hero_cta2: '查看源码', hero_hint: '随时召唤',
+        float_1: '已复制到剪贴板 ✓', float_2: '实时预览', float_3: '多语言就绪',
+        m1: '种语言', m2: '大平台', m3: '依赖', m4: '个快捷键', m5: '完全开源',
+        how_title: '三步搞定，<span class="accent">毫无摩擦。</span>',
+        how_desc: '没有保存对话框，没有文件管理，打了就走。',
+        how_1_t: '召唤', how_1_d: '在任意应用中按全局快捷键，OncePad 瞬间出现 — 无需切换窗口，无需找鼠标。',
+        how_2_t: '输入', how_2_d: '写下你的草稿、AI 提示词或快速笔记。支持 Markdown，自动保存为草稿，完整编辑能力触手可及。',
+        how_2_k: '自动保存 · Markdown',
+        how_3_t: '粘贴', how_3_d: '再按一次快捷键，窗口消失 — 文本已复制到剪贴板。随处粘贴，搞定收工。',
+        how_3_k: '隐藏时自动复制',
+        feat_title: '为<span class="accent">速度与专注</span>而生',
+        feat_desc: '捕捉灵感所需的一切，无关的统统不要。',
+        f1_t: '即时切换', f1_d: '全局快捷键从任意应用唤起编辑器，消失也一样快。',
+        f2_t: '隐藏自动复制', f2_d: '窗口隐藏的瞬间，文本已复制到剪贴板 — 无需额外操作。',
+        f3_t: '工作区', f3_d: '将笔记组织到独立的工作区，适配不同场景。',
+        f4_t: '标签与颜色', f4_d: '用标签和 6 种独特颜色标记笔记，方便筛选。',
+        f5_t: 'Markdown 支持', f5_d: '完整 Markdown 渲染 + 实时预览切换，代码/阅读模式可切换。',
+        f6_t: '行号与大纲', f6_d: '可选行号（逻辑/可视模式）+ 标题快速导航。',
+        f7_t: '11 种语言', f7_d: '简中/繁中/英/日/韩/德/法/西/葡(巴)/俄/意',
+        f8_t: '暗色/亮色主题', f8_d: '暗色亮色自由切换，UI 缩放 80%-150%。',
+        f9_t: '历史与回收站', f9_d: '过往内容自动保存（最多 100 条），回收站可配置清理周期。',
+        f10_t: '文件阅读器', f10_d: '打开 .txt / .md 文件作为轻量阅读器，Markdown 即时渲染 — 无需完整编辑器即可快速阅读。',
+        f11_t: '字体定制', f11_d: '中英文字体独立配置，字号、行高、内边距可调，打造专属阅读体验。',
+        f12_t: '导航栏定制', f12_d: '显示或隐藏 6 个标题栏按钮 — 置顶、颜色、新建、复制、笔记、设置。你的工作区，你做主。',
+        ft_viewer: '阅读器', ft_type: '编辑器', ft_ui: '界面',
+        deep_title: '一个真正的编辑器，<span class="accent">不只是文本框</span>',
+        deep_1_t: 'Markdown <span class="accent">实时预览</span>',
+        deep_1_d: '用 Markdown 书写，即时渲染。编辑/阅读模式自由切换，代码块、列表、引用、标题 — 全部支持。',
+        deep_1_l1: '完整 Markdown 渲染（markdown-it）',
+        deep_1_l2: '代码/阅读模式切换',
+        deep_1_l3: '通过标题生成文档大纲',
+        deep_1_l4: '小地图快速滚动（实验性）',
+        deep_1_l5: '中英文字体独立配置，字号行高可调',
+        mock_1: '创建仓库', mock_2: '编写 README', mock_3: '部署到 Pages', mock_4: '在此输入...',
+        deep_2_t: '11 种语言，<span class="accent">完全本地化</span>',
+        deep_2_d: 'OncePad 说你的语言。每一个 UI 字符串、每一项设置、每一个提示 — 均已完成 11 种语言本地化。基于 i18next。',
+        deep_2_l1: '中英文字体独立配置',
+        deep_2_l2: '字号、行高、内边距可调',
+        deep_2_l3: 'UI 缩放 80% — 150%',
+        deep_2_l4: '导航栏按钮自定义（显示/隐藏 6 个按钮）',
+        deep_2_l5: '全局快捷键可自定义',
+        table_title: '完整<span class="accent">功能矩阵</span>',
+        table_desc: '6 大类 25+ 项功能，全部免费，全部开源。',
+        th_cat: '类别', th_feat: '功能', th_desc: '说明',
+        cat_core: '核心', cat_notes: '笔记', cat_edit: '编辑器', cat_i18n: '国际化', cat_ui: '界面', cat_win: '窗口', cat_short: '快捷键',
+        tf1: '即时切换', td1: '任意应用全局快捷键',
+        tf2: '隐藏自动复制', td2: '窗口消失即复制',
+        tf3: '历史记录', td3: '自动保存过往内容（最多 100 条）',
+        tf4: '工作区', td4: '独立上下文',
+        tf5: '标签与颜色', td5: '6 种颜色分类',
+        tf6: '置顶', td6: '重要笔记常驻',
+        tf7: '回收站', td7: '自动清理 1/2/3/7 天',
+        tf8: 'Markdown', td8: '完整渲染 + 实时预览',
+        tf9: '代码/阅读模式', td9: '编辑/阅读视图切换',
+        tf10: '行号', td10: '逻辑或可视模式',
+        tf11: '大纲与小地图', td11: '快速导航 + 概览',
+        tf12: '字体定制', td12: '中英文独立、字号行高',
+        tf13: '11 种语言', td13: 'zh/en/ja/ko/de/fr/es/pt/ru/it',
+        tf14: '暗色/亮色主题', td14: '自由切换',
+        tf15: 'UI 缩放', td15: '80% — 150%',
+        tf16: '导航栏定制', td16: '显示/隐藏 6 个标题栏按钮',
+        tf17: '窗口置顶', td17: '保持在他应用之上',
+        tf18: '开机自启', td18: '随系统启动',
+        tf19: '失焦隐藏', td19: '失去焦点自动隐藏',
+        tf20: '可配置', td20: '切换/新建/复制快捷键',
+        cta_title: '准备好更快地思考了吗？',
+        cta_desc: '免费、开源、无需注册、无遥测。下载即用，几秒开始。',
+        cta_src: '从源码构建',
+        foot_desc: '轻量级即时草稿本，用于草拟消息、AI 提示词和快速笔记。',
+        foot_doc: '文档', foot_rel: '版本发布', foot_res: '资源', foot_repo: 'GitHub 仓库', foot_issue: '反馈问题',
+        foot_about: '关于', foot_up: '上游项目',
+        foot_copy: '© 2026 OncePad · MagicalYuYu · GPL-3.0 许可证 · 基于 AOS 构建'
+      }
+    };
+
+    function detectLanguage() {
+      const saved = localStorage.getItem('op-lang');
+      if (saved) return saved;
+      const browserLang = navigator.language || navigator.userLanguage || 'en';
+      return browserLang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+    }
+
+    let currentLang = detectLanguage();
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('op-lang', lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      if (i18n[lang].doc_title) document.title = i18n[lang].doc_title;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key] !== undefined) el.innerHTML = i18n[lang][key];
+      });
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+    });
+
+    applyLanguage(currentLang);
+
+    // ===== 导航栏滚动效果 + 滚动进度条 =====
+    const nav = document.querySelector('nav');
+    const scrollProgress = document.getElementById('scrollProgress');
+    function updateScroll() {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      if (scrollProgress) scrollProgress.style.width = progress + '%';
+    }
+    window.addEventListener('scroll', updateScroll, { passive: true });
+    updateScroll();
+
+    // ===== 移动端导航 =====
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (navToggle) {
+      navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+    }
+    // 点击导航链接后关闭移动菜单
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => navLinks.classList.remove('open'));
+    });
+
+    // ===== 滚动入场动画 =====
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        } else {
+          entry.target.classList.remove('visible');
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ===== 鼠标光晕 + Aurora 视差 =====
+    const cursorGlow = document.querySelector('.cursor-glow');
+    const blobs = document.querySelectorAll('.aurora-blob');
+    let mouseX = 0, mouseY = 0, curX = 0, curY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursorGlow.style.left = e.clientX + 'px';
+      cursorGlow.style.top = e.clientY + 'px';
+    });
+    // Aurora blobs 鼠标视差（缓慢跟随）
+    function parallaxLoop() {
+      curX += (mouseX - curX) * 0.04;
+      curY += (mouseY - curY) * 0.04;
+      const offsetX = (curX / window.innerWidth - 0.5) * 30;
+      const offsetY = (curY / window.innerHeight - 0.5) * 30;
+      blobs.forEach((blob, i) => {
+        const factor = (i + 1) * 0.4;
+        blob.style.marginLeft = (offsetX * factor) + 'px';
+        blob.style.marginTop = (offsetY * factor) + 'px';
+      });
+      requestAnimationFrame(parallaxLoop);
+    }
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      parallaxLoop();
+    }
+
+    // ===== Marquee 动态扩展（适配超宽屏，确保无缝循环） =====
+    function expandMarquee() {
+      const track = document.querySelector('.marquee-track');
+      if (!track) return;
+      const groups = track.querySelectorAll('.marquee-group');
+      if (groups.length === 0) return;
+      const template = groups[0];
+      const groupWidth = template.offsetWidth + 36; // 含 gap
+      const viewportWidth = window.innerWidth;
+      // 需要的总宽度至少为视口宽度的 2.5 倍（确保无缝循环时视口无空白）
+      const neededGroups = Math.max(4, Math.ceil((viewportWidth * 2.5) / groupWidth));
+      // 确保偶数（-50% 动画需要前后对称）
+      const totalGroups = neededGroups % 2 === 0 ? neededGroups : neededGroups + 1;
+      // 当前组数
+      const currentCount = groups.length;
+      if (currentCount >= totalGroups) return;
+      // 复制到目标数量
+      for (let i = currentCount; i < totalGroups; i++) {
+        track.appendChild(template.cloneNode(true));
+      }
+    }
+    // 初次执行（等字体加载后计算宽度更准确）
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(expandMarquee);
+    }
+    expandMarquee();
+    // 窗口大小变化时重新计算（防抖）
+    let marqueeResizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(marqueeResizeTimer);
+      marqueeResizeTimer = setTimeout(() => {
+        const track = document.querySelector('.marquee-track');
+        if (!track) return;
+        const groups = track.querySelectorAll('.marquee-group');
+        // 只保留第一个组，重新扩展
+        for (let i = 1; i < groups.length; i++) groups[i].remove();
+        expandMarquee();
+      }, 400);
+    });
+  </script>
+</body>
+</html>
