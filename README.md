@@ -12,8 +12,9 @@ Press a global shortcut to summon it, type your text, press again — and it's a
 
 ![Version](https://img.shields.io/badge/version-1.1.3-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-success?style=flat-square)
 ![Languages](https://img.shields.io/badge/i18n-11%20languages-blueviolet?style=flat-square)
+![Website](https://img.shields.io/badge/website-oncepad.magicalyu.online-blue?style=flat-square)
 
 </div>
 
