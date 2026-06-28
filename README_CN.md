@@ -9,13 +9,13 @@
 **轻量级即唤即用的随身笔记本，从临时片段到 AI 提示词，所有零散文字都有一处安放之地。**
 
 按下全局快捷键唤出，输入文字，再按一次——内容已复制到剪贴板，随时粘贴到任何地方。
-🌐 官网：https://oncepad.magicalyu.online/
+
+[🌐 官网](https://oncepad.magicalyu.online/)
 
 ![Version](https://img.shields.io/badge/version-1.1.3-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-success?style=flat-square)
 ![Languages](https://img.shields.io/badge/i18n-11%20languages-blueviolet?style=flat-square)
-![Website](https://img.shields.io/badge/website-oncepad.magicalyu.online-blue?style=flat-square)
 
 </div>
 
