@@ -506,6 +506,53 @@ function App() {
     saveCurrentNote,
   })
 
+  // v1.1.0：文件是否已修改（dirty 状态检测）
+  const isFileDirty = fileInfo && text !== lastSavedText
+
+  // v1.1.3 修复 Bug M-2：state ref 镜像，让 checkUnsavedAndExecute 读取最新 state 而非闭包捕获值
+  // 根因：checkUnsavedAndExecute 依赖 [fileInfo, isFileDirty, currentNote, text, saveCurrentNote]，
+  //   每次 state 变化都会重建，导致依赖它的 loadFileFromExternal/handleCloseWithCheck 也重建，
+  //   进而触发 useEffect 重新注册 IPC 监听器。即使已修复监听器移除，频繁重建仍浪费性能。
+  //   改用 ref 后 checkUnsavedAndExecute 依赖稳定（空数组），监听器只注册一次。
+  // v1.1.3 第二次重新发布：将此块从第 1377 行移到 useAutoSave 之后，解决 handleSelectNote/togglePin
+  //   前向引用 checkUnsavedAndExecute 导致的 TS2448 编译错误
+  const fileInfoRef = useRef(fileInfo)
+  const isFileDirtyRef = useRef(isFileDirty)
+  const currentNoteRef = useRef(currentNote)
+  const textRef = useRef(text)
+  const saveCurrentNoteRef = useRef(saveCurrentNote)
+  useEffect(() => {
+    fileInfoRef.current = fileInfo
+    isFileDirtyRef.current = isFileDirty
+    currentNoteRef.current = currentNote
+    textRef.current = text
+    saveCurrentNoteRef.current = saveCurrentNote
+  })
+
+  // v1.1.3 修复 Bug 2：检查未保存修改并执行动作
+  // 设计原则：笔记模式（草稿/收藏）永远实时保存，不弹窗、不丢弃
+  // - 文件模式（fileInfo 存在）且有修改：弹窗询问是否保存文件
+  // - 笔记模式（fileInfo 为空）且有内容（currentNote 存在且内容变化，或 currentNote 为 null 但有内容）：自动保存笔记后执行 action（不弹窗）
+  // - 无修改：直接执行 action
+  // v1.1.3 修复 Bug M-2：改用 ref 读取最新 state，依赖数组稳定为空，避免闭包捕获过期 state
+  // v1.1.3 第二次重新发布：笔记模式分支优化，处理 currentNote 为 null 但 text 有内容的情况（刚输入未自动保存的草稿）
+  const checkUnsavedAndExecute = useCallback((action: () => void) => {
+    const fi = fileInfoRef.current
+    const dirty = isFileDirtyRef.current
+    const cn = currentNoteRef.current
+    const tx = textRef.current
+    if (fi && dirty) {
+      // 文件模式且有修改：弹窗询问是否保存文件
+      pendingActionRef.current = action
+      setShowUnsavedDialog(true)
+    } else if (!fi && tx && tx.trim() && (cn ? tx !== cn.content : true)) {
+      // 笔记模式且有内容（currentNote 存在且内容变化，或 currentNote 为 null 但有内容）：自动保存笔记（不弹窗，不丢弃）
+      saveCurrentNoteRef.current().then(() => action())
+    } else {
+      action()
+    }
+  }, [])
+
   const handleNew = useCallback(async () => {
     // v1.1.3 修复：文件模式下不新建草稿（避免把文件内容误存为笔记）
     // 只有笔记模式下才调用 saveCurrentNote 保存当前笔记
@@ -534,33 +581,33 @@ function App() {
   }, [text, t])
 
   // === 选中笔记：加载完整内容到编辑区 ===
+  // v1.1.3 第二次重新发布：用 checkUnsavedAndExecute 包装，文件模式下有未保存修改时弹窗询问
+  //   根因：原代码文件模式下直接加载笔记内容，不弹窗询问，导致文件未保存的修改丢失
+  //   修复：文件模式且有修改时弹窗；笔记模式自动保存当前笔记后加载新笔记（不丢弃）
   const handleSelectNote = useCallback(async (id: string) => {
-    // v1.1.3 修复：文件模式下不调用 saveCurrentNote（避免把文件内容误存为草稿）
-    // 只有笔记模式下才保存当前笔记
-    if (!fileInfo) {
-      await saveCurrentNote()
-    }
-    const note = await window.electronAPI.getNote(id)
-    if (note) {
-      setText(note.content)
-      setCurrentNote(note)
-      setCurrentNoteId(note.id)
-      setEditorFormat(note.format)
-      setEditorMode('code')
-      setFileInfo(null) // 清除文件模式
-      // 加载后从顶部开始浏览，而非跳到末尾
-      // focus() 默认将光标置于文本末尾导致滚动到底部，需显式重置光标和滚动位置
-      safeTimeout(() => {
-        const textarea = textareaRef.current
-        if (textarea) {
-          textarea.selectionStart = 0
-          textarea.selectionEnd = 0
-          textarea.scrollTop = 0
-          textarea.focus()
-        }
-      }, 0)
-    }
-  }, [saveCurrentNote, fileInfo])
+    checkUnsavedAndExecute(async () => {
+      const note = await window.electronAPI.getNote(id)
+      if (note) {
+        setText(note.content)
+        setCurrentNote(note)
+        setCurrentNoteId(note.id)
+        setEditorFormat(note.format)
+        setEditorMode('code')
+        setFileInfo(null) // 清除文件模式
+        // 加载后从顶部开始浏览，而非跳到末尾
+        // focus() 默认将光标置于文本末尾导致滚动到底部，需显式重置光标和滚动位置
+        safeTimeout(() => {
+          const textarea = textareaRef.current
+          if (textarea) {
+            textarea.selectionStart = 0
+            textarea.selectionEnd = 0
+            textarea.scrollTop = 0
+            textarea.focus()
+          }
+        }, 0)
+      }
+    })
+  }, [checkUnsavedAndExecute])
 
   // === 删除笔记 ===
   const handleDeleteNote = useCallback(async (id: string, e: React.MouseEvent) => {
@@ -637,30 +684,35 @@ function App() {
   }, [])
 
   // === 收藏 / 取消收藏（编辑器工具栏按钮） ===
+  // v1.1.3 第二次重新发布：用 checkUnsavedAndExecute 包装，文件模式下有未保存修改时弹窗询问
+  //   根因：原代码文件模式下直接调用 ensureCurrentNote，不弹窗询问，导致文件未保存的修改被意外存为草稿/收藏
+  //   修复：文件模式且有修改时弹窗询问；笔记模式自动保存当前笔记后执行收藏（不丢弃）
   const togglePin = useCallback(async () => {
-    const note = await ensureCurrentNote()
-    if (!note) return
-    if (note.type === 'draft') {
-      // 草稿转收藏：调用 pinNote，后端清除 expiresAt
-      const pinned = await window.electronAPI.pinNote(note.id)
-      if (pinned) {
-        setCurrentNote(pinned)
+    checkUnsavedAndExecute(async () => {
+      const note = await ensureCurrentNote()
+      if (!note) return
+      if (note.type === 'draft') {
+        // 草稿转收藏：调用 pinNote，后端清除 expiresAt
+        const pinned = await window.electronAPI.pinNote(note.id)
+        if (pinned) {
+          setCurrentNote(pinned)
+        }
+      } else {
+        // 收藏转草稿：重新设置过期时间为 now + 3 天，清除置顶状态
+        const now = new Date()
+        const updated: Note = {
+          ...note,
+          type: 'draft',
+          expiresAt: new Date(now.getTime() + DRAFT_TTL_MS).toISOString(),
+          updatedAt: now.toISOString(),
+          pinned: undefined,
+        }
+        await window.electronAPI.saveNote(updated)
+        setCurrentNote(updated)
       }
-    } else {
-      // 收藏转草稿：重新设置过期时间为 now + 3 天，清除置顶状态
-      const now = new Date()
-      const updated: Note = {
-        ...note,
-        type: 'draft',
-        expiresAt: new Date(now.getTime() + DRAFT_TTL_MS).toISOString(),
-        updatedAt: now.toISOString(),
-        pinned: undefined,
-      }
-      await window.electronAPI.saveNote(updated)
-      setCurrentNote(updated)
-    }
-    await reloadNotes()
-  }, [ensureCurrentNote, reloadNotes])
+      await reloadNotes()
+    })
+  }, [checkUnsavedAndExecute, ensureCurrentNote, reloadNotes])
 
   // === 修改颜色标记 ===
   const changeColor = useCallback(async (color: NoteColor) => {
@@ -1368,50 +1420,6 @@ function App() {
       safeTimeout(() => { setToastMessage(null) }, 1500)
     }
   }, [fileInfo, text, t])
-
-  // v1.1.0：文件是否已修改（dirty 状态检测）
-  const isFileDirty = fileInfo && text !== lastSavedText
-
-  // v1.1.3 修复 Bug M-2：state ref 镜像，让 checkUnsavedAndExecute 读取最新 state 而非闭包捕获值
-  // 根因：checkUnsavedAndExecute 依赖 [fileInfo, isFileDirty, currentNote, text, saveCurrentNote]，
-  //   每次 state 变化都会重建，导致依赖它的 loadFileFromExternal/handleCloseWithCheck 也重建，
-  //   进而触发 useEffect 重新注册 IPC 监听器。即使已修复监听器移除，频繁重建仍浪费性能。
-  //   改用 ref 后 checkUnsavedAndExecute 依赖稳定（空数组），监听器只注册一次。
-  const fileInfoRef = useRef(fileInfo)
-  const isFileDirtyRef = useRef(isFileDirty)
-  const currentNoteRef = useRef(currentNote)
-  const textRef = useRef(text)
-  const saveCurrentNoteRef = useRef(saveCurrentNote)
-  useEffect(() => {
-    fileInfoRef.current = fileInfo
-    isFileDirtyRef.current = isFileDirty
-    currentNoteRef.current = currentNote
-    textRef.current = text
-    saveCurrentNoteRef.current = saveCurrentNote
-  })
-
-  // v1.1.3 修复 Bug 2：检查未保存修改并执行动作
-  // 设计原则：笔记模式（草稿/收藏）永远实时保存，不弹窗、不丢弃
-  // - 文件模式（fileInfo 存在）且有修改：弹窗询问是否保存文件
-  // - 笔记模式（fileInfo 为空）且有修改：自动保存笔记后执行 action（不弹窗）
-  // - 无修改：直接执行 action
-  // v1.1.3 修复 Bug M-2：改用 ref 读取最新 state，依赖数组稳定为空，避免闭包捕获过期 state
-  const checkUnsavedAndExecute = useCallback((action: () => void) => {
-    const fi = fileInfoRef.current
-    const dirty = isFileDirtyRef.current
-    const cn = currentNoteRef.current
-    const tx = textRef.current
-    if (fi && dirty) {
-      // 文件模式且有修改：弹窗询问是否保存文件
-      pendingActionRef.current = action
-      setShowUnsavedDialog(true)
-    } else if (!fi && cn && tx !== cn.content) {
-      // 笔记模式且有修改：自动保存笔记（不弹窗，不丢弃）
-      saveCurrentNoteRef.current().then(() => action())
-    } else {
-      action()
-    }
-  }, [])
 
   // v1.1.1：在已有窗口中加载外部文件（双击文件复用窗口场景）
   // 主进程 second-instance 事件中，优先复用已有窗口而非创建新窗口，减少 Electron 进程启动开销
