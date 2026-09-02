@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar"
   },
   "editor": {
     "placeholder": "Digite aqui...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Numeração por quebras de linha; linhas sem Enter contam como a mesma linha. Adequado para edição de código.",
     "lineNumberVisualHint": "Numeração por linhas exibidas; cada linha com quebra suave recebe um número. Adequado para leitura de textos longos.",
     "theme": "Tema",
-    "themeDark": "Escuro",
-    "themeLight": "Claro",
+    "themeDark": "Modo noturno",
+    "themeLight": "Modo diurno",
     "editorLineHeight": "Altura de linha do editor",
     "editorLineHeightHint": "Ajuste o espaçamento entre linhas no editor; valores maiores significam espaçamento maior",
     "editorPadding": "Preenchimento do editor",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "Seguir o sistema",
+    "showSystemWindow": "Mostrar janela do sistema",
+    "showSystemWindowDesc": "Aplica imediatamente (a janela reabre brevemente): mostra botões nativos de minimizar/maximizar/fechar; desativado usa botões integrados estilo WinUI 3",
+    "dayScheme": "Esquema de cores diurno",
+    "nightScheme": "Esquema de cores noturno",
+    "scheme_default": "Padrão",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized escuro",
+    "scheme_solarizedLight": "Solarized claro",
+    "scheme_vsdark": "VS Code escuro",
+    "scheme_purewhite": "Branco puro",
+    "daySchemeDefault": "Padrão",
+    "nightSchemeDefault": "Padrão"
   },
   "about": {
     "description": "Um bloco de notas leve, sempre disponível",

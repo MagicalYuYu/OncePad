@@ -154,6 +154,8 @@ interface Config {
   autoLaunch?: boolean
   // 开机自启后隐藏到后台：仅当 autoLaunch=true 时生效，启动后不显示窗口
   autoLaunchHidden?: boolean
+  // v1.4.0：显示系统原生标题栏（重启应用后生效）；false=WinUI 3 风格内置标题栏
+  showSystemWindow?: boolean
   // 失焦自动隐藏：窗口失去焦点时自动隐藏到托盘（可配置，默认关闭）
   blurToHide?: boolean
   // 默认新建笔记工作区 ID（空字符串=默认工作区，新建笔记自动归入此工作区）
@@ -468,6 +470,8 @@ function loadConfig(): Config {
         draftTtlDays: [1, 2, 3, 7, 30, 365].includes(Number(saved.draftTtlDays)) ? Number(saved.draftTtlDays) : 3,
         autoLaunch: saved.autoLaunch === true,
         autoLaunchHidden: saved.autoLaunchHidden === true,
+        // v1.4.0：系统标题栏开关（默认关闭=内置 WinUI 3 标题栏）
+        showSystemWindow: saved.showSystemWindow === true,
         // 修复：必须显式加载 blurToHide 字段，否则 newWin.on('blur') 读取时始终为 undefined
         blurToHide: saved.blurToHide === true,
         // 修复：必须显式加载 defaultWorkspaceId 字段，否则新建笔记时无法使用默认工作区
@@ -530,6 +534,8 @@ function loadConfig(): Config {
     draftTtlDays: 3,
     autoLaunch: false,
     autoLaunchHidden: false,
+    // v1.4.0：默认使用内置 WinUI 3 风格标题栏
+    showSystemWindow: false,
     // 默认关闭失焦自动隐藏（用户需手动在设置中开启）
     blurToHide: false,
     // 默认工作区为空字符串（=默认工作区）
@@ -1478,9 +1484,14 @@ function createWindow(config: Config, filePath?: string) {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hidden',
     trafficLightPosition: { x: 15, y: 15 },
+    // v1.4.1：显示系统窗口=Windows 原生窗口控制按钮（Window Controls Overlay）叠加在应用顶栏上；
+    //         关闭=应用内置 WinUI 3 标题栏按钮。两种模式都无系统标题栏（frame:false），仅窗口按钮来源不同。
     frame: false,
+    titleBarOverlay: config.showSystemWindow === true
+      ? { color: '#181825', symbolColor: '#cdd6f4', height: 44 }
+      : false,
     show: false,
     skipTaskbar: false,
     alwaysOnTop: config.alwaysOnTop,
@@ -1506,6 +1517,10 @@ function createWindow(config: Config, filePath?: string) {
     newWin.show()
     newWin.focus()
   })
+
+  // v1.4.0：最大化状态变化广播（内置标题栏切换 最大化/还原图标）
+  newWin.on('maximize', () => newWin.webContents.send('window:maximize-changed', true))
+  newWin.on('unmaximize', () => newWin.webContents.send('window:maximize-changed', false))
 
   // 窗口尺寸/位置变化时持久化（防抖：500ms 内只保存一次）
   let boundsSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -2171,6 +2186,56 @@ app.whenReady().then(() => {
     config.blurToHide = enabled === true
     saveConfig(config)
     return true
+  })
+
+  // v1.4.0：显示系统窗口开关（持久化，重启应用后生效）
+  ipcMain.handle('set-show-system-window', (event, enabled: boolean) => {
+    const config = loadConfig()
+    config.showSystemWindow = enabled === true
+    saveConfig(config)
+    // v1.4.2：立即重建窗口使新窗口按钮模式生效（无需手动重启应用）
+    const oldWin = BrowserWindow.fromWebContents(event.sender)
+    if (oldWin) {
+      setImmediate(() => {
+        try {
+          createWindow(config)
+          oldWin.destroy()
+        } catch {
+          // 重建失败时保留原窗口
+        }
+      })
+    }
+    return true
+  })
+
+  // v1.4.0：WinUI 3 内置标题栏窗口控制（最小化/最大化切换/查询）
+  ipcMain.handle('minimize-window', (event) => {
+    BrowserWindow.fromWebContents(event.sender)?.minimize()
+  })
+  ipcMain.handle('toggle-maximize-window', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return false
+    if (win.isMaximized()) {
+      win.unmaximize()
+    } else {
+      win.maximize()
+    }
+    return win.isMaximized()
+  })
+  ipcMain.handle('is-maximized', (event) => {
+    return BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false
+  })
+
+  // v1.4.1：同步 WCO 原生窗口按钮配色（跟随日间/夜间主题）
+  ipcMain.handle('set-title-bar-overlay', (event, colors: { color?: string; symbolColor?: string; height?: number }) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win || process.platform !== 'win32') return false
+    try {
+      win.setTitleBarOverlay({ color: colors.color, symbolColor: colors.symbolColor, height: colors.height ?? 44 })
+      return true
+    } catch {
+      return false
+    }
   })
 
   // 行号显示开关：开启后在编辑区最左侧显示行号

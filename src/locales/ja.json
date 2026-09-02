@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "元に戻す"
   },
   "editor": {
     "placeholder": "ここに入力...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "改行で番号を振ります。Enterがない行は同じ行として扱います。コード編集に適しています。",
     "lineNumberVisualHint": "表示行で番号を振ります。折り返された各行に番号が付きます。長文の閲覧に適しています。",
     "theme": "テーマ",
-    "themeDark": "ダーク",
-    "themeLight": "ライト",
+    "themeDark": "夜間モード",
+    "themeLight": "昼モード",
     "editorLineHeight": "エディタの行の高さ",
     "editorLineHeightHint": "エディタの行間を調整します。値を大きくすると間隔が広くなります",
     "editorPadding": "エディタのパディング",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "システムに従う",
+    "showSystemWindow": "システムウィンドウを表示",
+    "showSystemWindowDesc": "即時適用（ウィンドウが一瞬開き直ります）：オンでネイティブの最小化/最大化/閉じるボタンを表示、オフで内蔵 WinUI 3 風ボタンを使用",
+    "dayScheme": "昼のカラースキーム",
+    "nightScheme": "夜のカラースキーム",
+    "scheme_default": "デフォルト",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized ダーク",
+    "scheme_solarizedLight": "Solarized ライト",
+    "scheme_vsdark": "VS Code ダーク",
+    "scheme_purewhite": "ピュアホワイト",
+    "daySchemeDefault": "デフォルト",
+    "nightSchemeDefault": "デフォルト"
   },
   "about": {
     "description": "軽量でいつでも呼び出せる一時ノート",

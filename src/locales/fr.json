@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Réduire",
+    "maximize": "Agrandir",
+    "restore": "Restaurer"
   },
   "editor": {
     "placeholder": "Écrivez ici...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Numérotation par sauts de ligne ; les lignes sans Entrée comptent comme une seule ligne. Adapté à l'édition de code.",
     "lineNumberVisualHint": "Numérotation par lignes affichées ; chaque ligne renvoyée à la ligne automatiquement reçoit un numéro. Adapté à la lecture de textes longs.",
     "theme": "Thème",
-    "themeDark": "Sombre",
-    "themeLight": "Clair",
+    "themeDark": "Mode nuit",
+    "themeLight": "Mode jour",
     "editorLineHeight": "Hauteur de ligne de l'éditeur",
     "editorLineHeightHint": "Ajuster l'interligne dans l'éditeur ; des valeurs plus grandes signifient un espacement plus large",
     "editorPadding": "Marge interne de l'éditeur",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "Suivre le système",
+    "showSystemWindow": "Afficher la fenêtre système",
+    "showSystemWindowDesc": "Appliqué immédiatement (la fenêtre se rouvre brièvement) : affiche les boutons natifs réduire/agrandir/fermer ; désactivé, boutons intégrés style WinUI 3",
+    "dayScheme": "Schéma de couleurs jour",
+    "nightScheme": "Schéma de couleurs nuit",
+    "scheme_default": "Par défaut",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized sombre",
+    "scheme_solarizedLight": "Solarized clair",
+    "scheme_vsdark": "VS Code sombre",
+    "scheme_purewhite": "Blanc pur",
+    "daySchemeDefault": "Par défaut",
+    "nightSchemeDefault": "Par défaut"
   },
   "about": {
     "description": "Un bloc-notes léger, toujours disponible",

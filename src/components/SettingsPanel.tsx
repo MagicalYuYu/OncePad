@@ -9,6 +9,19 @@ import { normalizeFontName } from '../lib/format'
 export type SettingsTab = 'general' | 'appearance' | 'editor' | 'shortcuts' | 'management' | 'debug'
 export type ShortcutTarget = 'toggle' | 'new' | 'copy' | 'recentFiles'
 
+// 配色方案（v1.4.2）：Notepad++ 风格编辑器配色预设，对应 App.css 中 scheme-* 类
+export const COLOR_SCHEMES: string[] = [
+  'default',
+  'purewhite',
+  'monokai',
+  'dracula',
+  'obsidian',
+  'zenburn',
+  'solarizedDark',
+  'solarizedLight',
+  'vsdark',
+]
+
 /**
  * SettingsPanel 组件 Props 接口
  *
@@ -58,9 +71,16 @@ interface SettingsPanelProps {
   // 缩略图（minimap）
   showMinimap: boolean
   onShowMinimapChange: (enabled: boolean) => void
-  // 主题模式
-  theme: 'dark' | 'light'
-  onThemeChange: (theme: 'dark' | 'light') => void
+  // 主题体系（v1.4.0）：模式（日间/夜间/跟随系统）× 日间/夜间配色方案
+  themeMode: 'light' | 'dark' | 'system'
+  onThemeModeChange: (mode: 'light' | 'dark' | 'system') => void
+  dayScheme: string
+  onDaySchemeChange: (scheme: string) => void
+  nightScheme: string
+  onNightSchemeChange: (scheme: string) => void
+  // v1.4.0：显示系统原生标题栏（Telegram「显示系统窗口」同款，重启生效）
+  showSystemWindow: boolean
+  onShowSystemWindowChange: (enabled: boolean) => void
   indentType: 'space' | 'tab'
   indentSize: number
   onIndentTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
@@ -334,6 +354,24 @@ export function SettingsPanel(props: SettingsPanelProps) {
               </div>
             </div>
             <div className="settings-item">
+              <div className="settings-row">
+                <div>
+                  <div className="settings-label">{t('settings.showSystemWindow', '显示系统窗口')}</div>
+                  <div className="setting-description">
+                    {t('settings.showSystemWindowDesc', '由 Windows 绘制原生最小化/最大化/关闭按钮并叠加在应用顶栏右上角（重启应用后生效）；关闭时使用应用内置 WinUI 3 风格按钮')}
+                  </div>
+                </div>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={props.showSystemWindow}
+                    onChange={(e) => props.onShowSystemWindowChange(e.target.checked)}
+                  />
+                  <span className="switch-slider" />
+                </label>
+              </div>
+            </div>
+            <div className="settings-item">
               <div className="settings-label">{t('settings.closeLastWindowBehavior', '关闭最后一个窗口时')}</div>
               <div className="setting-description" style={{ marginBottom: 8 }}>
                 {t('settings.closeLastWindowBehaviorDesc', '当关闭最后一个窗口时，选择应用的行为')}
@@ -367,11 +405,13 @@ export function SettingsPanel(props: SettingsPanelProps) {
               </select>
             </div>
             <div className="settings-item">
-              <div className="settings-label">{t('settings.autoLaunch', '开机自启')}</div>
-              <div className="setting-description" style={{ marginBottom: 8 }}>
-                {t('settings.autoLaunchDesc', '系统开机时自动启动 OncePad')}
-              </div>
-              <div className="settings-row" style={{ marginBottom: 8 }}>
+              <div className="settings-row">
+                <div>
+                  <div className="settings-label">{t('settings.autoLaunch', '开机自启')}</div>
+                  <div className="setting-description">
+                    {t('settings.autoLaunchDesc', '系统开机时自动启动 OncePad')}
+                  </div>
+                </div>
                 <label className="switch">
                   <input
                     type="checkbox"
@@ -382,7 +422,7 @@ export function SettingsPanel(props: SettingsPanelProps) {
                 </label>
               </div>
               {props.autoLaunch && (
-                <div className="settings-row">
+                <div className="settings-row" style={{ marginTop: 8 }}>
                   <span className="setting-description">{t('settings.autoLaunchHidden', '启动后隐藏到后台')}</span>
                   <label className="switch">
                     <input
@@ -421,16 +461,41 @@ export function SettingsPanel(props: SettingsPanelProps) {
           <>
             <div className="settings-item">
               <div className="settings-label">{t('settings.theme', '主题模式')}</div>
-              <div className="settings-row" style={{ marginBottom: 8 }}>
-                <select
-                  className="settings-select"
-                  value={props.theme}
-                  onChange={(e) => props.onThemeChange(e.target.value as 'dark' | 'light')}
-                >
-                  <option value="dark">{t('settings.themeDark', '深色')}</option>
-                  <option value="light">{t('settings.themeLight', '浅色')}</option>
-                </select>
-              </div>
+              <select
+                className="settings-select settings-select-full"
+                value={props.themeMode}
+                onChange={(e) => props.onThemeModeChange(e.target.value as 'light' | 'dark' | 'system')}
+              >
+                <option value="light">{t('settings.themeLight', '日间模式')}</option>
+                <option value="dark">{t('settings.themeDark', '夜间模式')}</option>
+                <option value="system">{t('settings.themeModeSystem', '跟随系统')}</option>
+              </select>
+            </div>
+            <div className="settings-item">
+              <div className="settings-label">{t('settings.dayScheme', '日间配色')}</div>
+              <select
+                className="settings-select settings-select-full"
+                value={props.dayScheme}
+                onChange={(e) => props.onDaySchemeChange(e.target.value)}
+              >
+                <option value="default">{t('settings.daySchemeDefault', '默认日间（原版偏蓝）')}</option>
+                {COLOR_SCHEMES.filter((id) => id !== 'default').map((id) => (
+                  <option key={id} value={id}>{t(`settings.scheme_${id}`, id)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="settings-item">
+              <div className="settings-label">{t('settings.nightScheme', '夜间配色')}</div>
+              <select
+                className="settings-select settings-select-full"
+                value={props.nightScheme}
+                onChange={(e) => props.onNightSchemeChange(e.target.value)}
+              >
+                <option value="default">{t('settings.nightSchemeDefault', '默认夜间（原版深蓝）')}</option>
+                {COLOR_SCHEMES.filter((id) => id !== 'default').map((id) => (
+                  <option key={id} value={id}>{t(`settings.scheme_${id}`, id)}</option>
+                ))}
+              </select>
             </div>
             <div className="settings-item">
               <div className="settings-label">{t('settings.fontEn')}</div>

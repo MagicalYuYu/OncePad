@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Minimieren",
+    "maximize": "Maximieren",
+    "restore": "Wiederherstellen"
   },
   "editor": {
     "placeholder": "Hier tippen...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Nummerierung nach Zeilenumbrüchen; Zeilen ohne Eingabetaste gelten als dieselbe Zeile. Geeignet für Codebearbeitung.",
     "lineNumberVisualHint": "Nummerierung nach angezeigten Zeilen; jede soft-umgebrochene Zeile erhält eine Nummer. Geeignet für das Lesen langer Texte.",
     "theme": "Design",
-    "themeDark": "Dunkel",
-    "themeLight": "Hell",
+    "themeDark": "Nachtmodus",
+    "themeLight": "Tagmodus",
     "editorLineHeight": "Editor-Zeilenhöhe",
     "editorLineHeightHint": "Zeilenabstand im Editor anpassen; größere Werte bedeuten weiteren Abstand",
     "editorPadding": "Editor-Innenabstand",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "System folgen",
+    "showSystemWindow": "Systemfenster anzeigen",
+    "showSystemWindowDesc": "Wirkt sofort (das Fenster öffnet sich kurz neu): zeigt native Minimieren-/Maximieren-/Schließen-Schaltflächen; aus = integrierte WinUI-3-Schaltflächen",
+    "dayScheme": "Tag-Farbschema",
+    "nightScheme": "Nacht-Farbschema",
+    "scheme_default": "Standard",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized Dunkel",
+    "scheme_solarizedLight": "Solarized Hell",
+    "scheme_vsdark": "VS Code Dunkel",
+    "scheme_purewhite": "Reinweiß",
+    "daySchemeDefault": "Standard",
+    "nightSchemeDefault": "Standard"
   },
   "about": {
     "description": "Ein leichter, jederzeit verfügbarer Notizblock",

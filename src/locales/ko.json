@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "최소화",
+    "maximize": "최대화",
+    "restore": "복원"
   },
   "editor": {
     "placeholder": "여기에 입력하세요...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "줄바꿈 기준으로 번호를 매깁니다. Enter 없는 줄은 같은 줄로 간주합니다. 코드 편집에 적합합니다.",
     "lineNumberVisualHint": "표시되는 행 기준으로 번호를 매깁니다. 자동 줄바꿈된 각 행에 번호가 부여됩니다. 긴 텍스트 읽기에 적합합니다.",
     "theme": "테마",
-    "themeDark": "다크",
-    "themeLight": "라이트",
+    "themeDark": "밤 모드",
+    "themeLight": "낮 모드",
     "editorLineHeight": "편집기 줄 높이",
     "editorLineHeightHint": "편집기의 줄 간격을 조정합니다. 값이 클수록 간격이 넓어집니다",
     "editorPadding": "편집기 여백",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "시스템 따르기",
+    "showSystemWindow": "시스템 창 표시",
+    "showSystemWindowDesc": "즉시 적용(창이 잠시 다시 열림): 켜면 시스템 기본 최소화/최대화/닫기 버튼 표시, 끄면 내장 WinUI 3 스타일 버튼 사용",
+    "dayScheme": "낮 색 구성표",
+    "nightScheme": "밤 색 구성표",
+    "scheme_default": "기본값",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized 다크",
+    "scheme_solarizedLight": "Solarized 라이트",
+    "scheme_vsdark": "VS Code 다크",
+    "scheme_purewhite": "순백",
+    "daySchemeDefault": "기본값",
+    "nightSchemeDefault": "기본값"
   },
   "about": {
     "description": "언제든 불러올 수 있는 가벼운 임시 노트",

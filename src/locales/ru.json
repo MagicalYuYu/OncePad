@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Свернуть",
+    "maximize": "Развернуть",
+    "restore": "Восстановить"
   },
   "editor": {
     "placeholder": "Пишите здесь...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Нумерация по разрывам строк; строки без нажатия Enter считаются одной строкой. Подходит для редактирования кода.",
     "lineNumberVisualHint": "Нумерация по отображаемым строкам; каждая строка с мягким переносом получает свой номер. Подходит для чтения длинного текста.",
     "theme": "Тема",
-    "themeDark": "Тёмная",
-    "themeLight": "Светлая",
+    "themeDark": "Ночной режим",
+    "themeLight": "Дневной режим",
     "editorLineHeight": "Высота строки редактора",
     "editorLineHeightHint": "Настройка межстрочного интервала в редакторе; большее значение — шире интервал",
     "editorPadding": "Внутренние отступы редактора",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "Как в системе",
+    "showSystemWindow": "Показывать системное окно",
+    "showSystemWindowDesc": "Применяется сразу (окно ненадолго переоткрывается): показывает нативные кнопки свернуть/развернуть/закрыть; выключено — встроенные кнопки в стиле WinUI 3",
+    "dayScheme": "Дневная цветовая схема",
+    "nightScheme": "Ночная цветовая схема",
+    "scheme_default": "По умолчанию",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized тёмная",
+    "scheme_solarizedLight": "Solarized светлая",
+    "scheme_vsdark": "VS Code тёмная",
+    "scheme_purewhite": "Чистый белый",
+    "daySchemeDefault": "По умолчанию",
+    "nightSchemeDefault": "По умолчанию"
   },
   "about": {
     "description": "Лёгкий блокнот, всегда под рукой",

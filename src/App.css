@@ -70,6 +70,24 @@ body {
   overflow: hidden;
 }
 
+/* v1.4.2 WCO 模式（.wco）：原版顶栏保留，仅顶栏右侧避让原生窗口按钮（144px = 3×48 恒定值）
+   v1.4.4 去掉底部分隔线：原生按钮背景不透明会截断线条，视觉上断线难看 */
+.app.wco .titlebar {
+  padding-right: calc(16px + var(--wco-inset, 144px));
+  border-bottom: none;
+}
+/* v1.4.4 WCO 模式下隐藏标题文字（用户钦定：顶栏只留功能按钮，标题让位原生按钮区） */
+.app.wco .titlebar-text {
+  display: none;
+}
+/* 窗口变窄时工具栏按钮优雅收缩：从左侧裁剪（保留右侧靠原生按钮区的按钮），不重叠 */
+.app.wco .titlebar-buttons {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  justify-content: flex-end;
+}
+
 /* Titlebar — Grid 第一行，高度固定 44px，永远不被内容推出视口 */
 .titlebar {
   position: relative;
@@ -106,6 +124,11 @@ body {
   .titlebar-text {
     display: none;
   }
+}
+
+/* v1.4.3：标题与工具栏按钮碰撞时自动隐藏（App.tsx 碰撞检测） */
+.titlebar-text-hidden {
+  display: none;
 }
 
 .titlebar-left {
@@ -3125,3 +3148,146 @@ body {
   border-color: var(--danger);
   color: var(--danger);
 }
+
+/* ============ 配色方案（v1.4.0，Notepad++ 风格） ============ */
+/* 作用域：编辑器区（textarea + Markdown 预览）；应用框架色跟随日间/夜间主题 */
+
+html.scheme-monokai .editor,
+html.scheme-monokai .md-preview {
+  background: #272822;
+  color: #f8f8f2;
+}
+html.scheme-monokai .editor::selection { background: #49483e; }
+
+html.scheme-dracula .editor,
+html.scheme-dracula .md-preview {
+  background: #282a36;
+  color: #f8f8f2;
+}
+html.scheme-dracula .editor::selection { background: #44475a; }
+
+html.scheme-obsidian .editor,
+html.scheme-obsidian .md-preview {
+  background: #282b2e;
+  color: #e0e2e4;
+}
+html.scheme-obsidian .editor::selection { background: #3d4145; }
+
+html.scheme-zenburn .editor,
+html.scheme-zenburn .md-preview {
+  background: #3f3f3f;
+  color: #dcdccc;
+}
+html.scheme-zenburn .editor::selection { background: #494949; }
+
+html.scheme-solarizedDark .editor,
+html.scheme-solarizedDark .md-preview {
+  background: #002b36;
+  color: #93a1a1;
+}
+html.scheme-solarizedDark .editor::selection { background: #274642; }
+
+html.scheme-solarizedLight .editor,
+html.scheme-solarizedLight .md-preview {
+  background: #fdf6e3;
+  color: #586e75;
+}
+html.scheme-solarizedLight .editor::selection { background: #eee8d5; }
+
+html.scheme-vsdark .editor,
+html.scheme-vsdark .md-preview {
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+html.scheme-vsdark .editor::selection { background: #264f78; }
+
+/* ============ 配色方案 → 标题栏 / 设置面板 / 字符数底栏（v1.4.2） ============ */
+/* 变量级联：方案调色板挂在容器上，.titlebar / .panel（设置/笔记面板）/ .editor-statusbar
+   及其全部子元素自动换装；WCO 原生按钮底色由 App.tsx SCHEME_WCO_COLORS 同步 */
+
+html.scheme-monokai :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #272822; --bg-secondary: #1e1f1c; --bg-hover: #3e3d32; --bg-active: #49483e;
+  --border: #3a3a35; --text-primary: #f8f8f2; --text-secondary: #b8b8ad; --text-muted: #7f7f75;
+  --scrollbar: #3a3a35; --scrollbar-hover: #49483e;
+}
+
+html.scheme-dracula :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #282a36; --bg-secondary: #21222c; --bg-hover: #44475a; --bg-active: #4b4e63;
+  --border: #3b3d52; --text-primary: #f8f8f2; --text-secondary: #b8b8c8; --text-muted: #7c7f96;
+  --scrollbar: #3b3d52; --scrollbar-hover: #44475a;
+}
+
+html.scheme-obsidian :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #282b2e; --bg-secondary: #222628; --bg-hover: #3a3f43; --bg-active: #474d51;
+  --border: #35393c; --text-primary: #e0e2e4; --text-secondary: #a8acb0; --text-muted: #767b7e;
+  --scrollbar: #35393c; --scrollbar-hover: #474d51;
+}
+
+html.scheme-zenburn :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #3f3f3f; --bg-secondary: #383834; --bg-hover: #4f4f4a; --bg-active: #5a5a54;
+  --border: #4a4a44; --text-primary: #dcdccc; --text-secondary: #b0b09a; --text-muted: #808071;
+  --scrollbar: #4a4a44; --scrollbar-hover: #5a5a54;
+}
+
+html.scheme-solarizedDark :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #002b36; --bg-secondary: #01323d; --bg-hover: #073642; --bg-active: #0a4653;
+  --border: #0a4552; --text-primary: #93a1a1; --text-secondary: #7d9298; --text-muted: #4f6a72;
+  --scrollbar: #0a4552; --scrollbar-hover: #0a4653;
+}
+
+html.scheme-solarizedLight :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #fdf6e3; --bg-secondary: #eee8d5; --bg-hover: #e4dcc3; --bg-active: #d9cfb8;
+  --border: #d9cfb8; --text-primary: #586e75; --text-secondary: #657b83; --text-muted: #93a1a1;
+  --scrollbar: #d9cfb8; --scrollbar-hover: #d9cfb8;
+}
+
+html.scheme-vsdark :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #1e1e1e; --bg-secondary: #181818; --bg-hover: #2d2d2d; --bg-active: #373737;
+  --border: #2d2d2d; --text-primary: #d4d4d4; --text-secondary: #a8a8a8; --text-muted: #6e6e6e;
+  --scrollbar: #2d2d2d; --scrollbar-hover: #373737;
+}
+
+/* 纯白：白底黑字 */
+html.scheme-purewhite :is(.editor-container, .panel, .titlebar, .recent-files-palette) {
+  --bg-primary: #ffffff; --bg-secondary: #f5f5f5; --bg-hover: #ebebeb; --bg-active: #d9d9d9;
+  --border: #e0e0e0; --text-primary: #1a1a1a; --text-secondary: #444444; --text-muted: #8a8a8a;
+  --scrollbar: #e0e0e0; --scrollbar-hover: #d0d0d0;
+}
+
+html.scheme-purewhite .editor,
+html.scheme-purewhite .md-preview {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+html.scheme-purewhite .editor::selection { background: #bcd5ff; }
+
+/* ============ 配色方案影响标题栏（v1.4.2） ============ */
+/* 内置顶栏底色随方案微调（比编辑区略深一档），WCO 原生按钮底色由 App.tsx 同步 */
+
+html.scheme-monokai .titlebar { background: #1e1f1c; border-bottom-color: #31322d; }
+html.scheme-monokai .titlebar-text { color: #b8b8ad; }
+html.scheme-monokai .titlebar .btn { color: #c9c9bf; }
+
+html.scheme-dracula .titlebar { background: #21222c; border-bottom-color: #343546; }
+html.scheme-dracula .titlebar-text { color: #b8b8c8; }
+html.scheme-dracula .titlebar .btn { color: #c9c9dd; }
+
+html.scheme-obsidian .titlebar { background: #222628; border-bottom-color: #35393c; }
+html.scheme-obsidian .titlebar-text { color: #a8acb0; }
+html.scheme-obsidian .titlebar .btn { color: #b9bdc1; }
+
+html.scheme-zenburn .titlebar { background: #383834; border-bottom-color: #4a4a44; }
+html.scheme-zenburn .titlebar-text { color: #b0b09a; }
+html.scheme-zenburn .titlebar .btn { color: #c2c2ac; }
+
+html.scheme-solarizedDark .titlebar { background: #01323d; border-bottom-color: #0a4552; }
+html.scheme-solarizedDark .titlebar-text { color: #7d9298; }
+html.scheme-solarizedDark .titlebar .btn { color: #93a1a1; }
+
+html.scheme-solarizedLight .titlebar { background: #eee8d5; border-bottom-color: #d9cfb8; }
+html.scheme-solarizedLight .titlebar-text { color: #657b83; }
+html.scheme-solarizedLight .titlebar .btn { color: #586e75; }
+
+html.scheme-vsdark .titlebar { background: #181818; border-bottom-color: #2d2d2d; }
+html.scheme-vsdark .titlebar-text { color: #a8a8a8; }
+html.scheme-vsdark .titlebar .btn { color: #c5c5c5; }

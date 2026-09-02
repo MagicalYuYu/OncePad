@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Riduci",
+    "maximize": "Ingrandisci",
+    "restore": "Ripristina"
   },
   "editor": {
     "placeholder": "Scrivi qui...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Numerazione per interruzioni di riga; le righe senza Invio contano come una sola. Adatto alla modifica del codice.",
     "lineNumberVisualHint": "Numerazione per righe visualizzate; ogni riga con a capo morbido riceve un numero. Adatto alla lettura di testi lunghi.",
     "theme": "Tema",
-    "themeDark": "Scuro",
-    "themeLight": "Chiaro",
+    "themeDark": "Modalità notte",
+    "themeLight": "Modalità giorno",
     "editorLineHeight": "Altezza riga editor",
     "editorLineHeightHint": "Regola la spaziatura tra le righe nell'editor; valori maggiori indicano spaziatura più ampia",
     "editorPadding": "Spaziatura editor",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "Segui il sistema",
+    "showSystemWindow": "Mostra finestra di sistema",
+    "showSystemWindowDesc": "Applicato immediatamente (la finestra si riapre brevemente): mostra i pulsanti nativi riduci a icona/massimizza/chiudi; disattivato usa i pulsanti integrati in stile WinUI 3",
+    "dayScheme": "Schema colori giorno",
+    "nightScheme": "Schema colori notte",
+    "scheme_default": "Predefinito",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized scuro",
+    "scheme_solarizedLight": "Solarized chiaro",
+    "scheme_vsdark": "VS Code scuro",
+    "scheme_purewhite": "Bianco puro",
+    "daySchemeDefault": "Predefinito",
+    "nightSchemeDefault": "Predefinito"
   },
   "about": {
     "description": "Un blocco note leggero, sempre disponibile",

@@ -41,6 +41,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setDraftTtlDays: (days: number) => ipcRenderer.invoke('set-draft-ttl-days', days),
   setAutoLaunch: (enabled: boolean, hidden: boolean) => ipcRenderer.invoke('set-auto-launch', enabled, hidden),
   setBlurToHide: (enabled: boolean) => ipcRenderer.invoke('set-blur-to-hide', enabled),
+  // v1.4.0：显示系统原生标题栏开关（重启生效）
+  setShowSystemWindow: (enabled: boolean) => ipcRenderer.invoke('set-show-system-window', enabled),
+  // v1.4.0：WinUI 3 内置标题栏窗口控制
+  minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('toggle-maximize-window'),
+  isWindowMaximized: () => ipcRenderer.invoke('is-maximized') as Promise<boolean>,
+  onWindowMaximizeChange: (callback: (maximized: boolean) => void) => {
+    const listener = (_e: IpcRendererEvent, maximized: boolean) => callback(maximized)
+    ipcRenderer.on('window:maximize-changed', listener)
+    return () => ipcRenderer.removeListener('window:maximize-changed', listener)
+  },
+  // v1.4.1：同步 WCO 原生窗口按钮配色（跟随主题）
+  setTitleBarOverlay: (colors: { color?: string; symbolColor?: string; height?: number }) => ipcRenderer.invoke('set-title-bar-overlay', colors),
   setShowLineNumbers: (enabled: boolean) => ipcRenderer.invoke('set-show-line-numbers', enabled),
   setLineNumberMode: (mode: 'logical' | 'visual') => ipcRenderer.invoke('set-line-number-mode', mode),
   setEditorLineHeight: (value: number) => ipcRenderer.invoke('set-editor-line-height', value),

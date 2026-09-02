@@ -120,6 +120,8 @@ export interface AppConfig {
   draftTtlDays?: number
   autoLaunch?: boolean
   autoLaunchHidden?: boolean
+  // v1.4.0：显示系统原生标题栏（重启生效）；false=内置 WinUI 3 风格标题栏
+  showSystemWindow?: boolean
   blurToHide?: boolean
   defaultWorkspaceId?: string
   showLineNumbers?: boolean
@@ -206,6 +208,15 @@ export interface ElectronAPI {
   setDraftTtlDays: (days: number) => Promise<boolean>
   setAutoLaunch: (enabled: boolean, hidden: boolean) => Promise<boolean>
   setBlurToHide: (enabled: boolean) => Promise<boolean>
+  // v1.4.0：显示系统原生标题栏开关（重启生效）
+  setShowSystemWindow: (enabled: boolean) => Promise<boolean>
+  // v1.4.0：WinUI 3 内置标题栏窗口控制
+  minimizeWindow: () => Promise<void>
+  toggleMaximizeWindow: () => Promise<boolean>
+  isWindowMaximized: () => Promise<boolean>
+  onWindowMaximizeChange: (callback: (maximized: boolean) => void) => () => void
+  // v1.4.1：同步 WCO 原生窗口按钮配色（跟随主题）
+  setTitleBarOverlay: (colors: { color?: string; symbolColor?: string; height?: number }) => Promise<boolean>
   setShowLineNumbers: (enabled: boolean) => Promise<boolean>
   setLineNumberMode: (mode: 'logical' | 'visual') => Promise<boolean>
   setEditorLineHeight: (value: number) => Promise<boolean>

@@ -10,6 +10,18 @@ import { DEFAULT_TOGGLE_SHORTCUT, DEFAULT_NEW_SHORTCUT, DEFAULT_COPY_SHORTCUT, N
 import { normalizeFontName } from './lib/format'
 import { useAutoSave } from './hooks/useAutoSave'
 import { SettingsPanel, type SettingsTab, type ShortcutTarget } from './components/SettingsPanel'
+
+// v1.4.2：配色方案 → WCO 原生窗口按钮配色（默认方案走日/夜主题色）
+const SCHEME_WCO_COLORS: Record<string, { color: string; symbolColor: string }> = {
+  purewhite: { color: '#ffffff', symbolColor: '#1a1a1a' },
+  monokai: { color: '#1e1f1c', symbolColor: '#f8f8f2' },
+  dracula: { color: '#21222c', symbolColor: '#f8f8f2' },
+  obsidian: { color: '#222628', symbolColor: '#e0e2e4' },
+  zenburn: { color: '#383834', symbolColor: '#dcdccc' },
+  solarizedDark: { color: '#01323d', symbolColor: '#93a1a1' },
+  solarizedLight: { color: '#eee8d5', symbolColor: '#586e75' },
+  vsdark: { color: '#181818', symbolColor: '#d4d4d4' },
+}
 import { NotesPanel, type NoteFilter } from './components/NotesPanel'
 import { EditorArea, type OutlineItem } from './components/EditorArea'
 import { SearchReplacePanel } from './components/SearchReplacePanel'
@@ -151,9 +163,31 @@ function App() {
   const [uiScalePreview, setUiScalePreview] = useState(100)
   const [systemFonts, setSystemFonts] = useState<string[]>([])
   const [language, setLanguage] = useState('zh-CN')
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark'
+  // v1.4.0 主题体系：模式（日间/夜间/跟随系统）× 日间/夜间配色方案（Notepad++ 风格编辑器配色）
+  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>(() => {
+    // 兼容旧版 theme 键：迁移 dark/light → mode
+    const saved = localStorage.getItem('themeMode') as 'light' | 'dark' | 'system' | null
+    if (saved) return saved
+    return localStorage.getItem('theme') === 'light' ? 'light' : 'dark'
   })
+  const [dayScheme, setDayScheme] = useState<string>(() => {
+    // v1.4.4：classic 与 default-day 调色板相同，统一迁移为 default
+    const saved = localStorage.getItem('dayScheme')
+    return saved === 'classic' || !saved ? 'default' : saved
+  })
+  const [nightScheme, setNightScheme] = useState<string>(() => {
+    const saved = localStorage.getItem('nightScheme')
+    return saved === 'classic' || !saved ? 'default' : saved
+  })
+  // 系统亮暗偏好（跟随系统模式使用，matchMedia 监听）
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
+  // v1.4.0：显示系统原生窗口按钮（Telegram「显示系统窗口」同款，重启生效）
+  const [showSystemWindow, setShowSystemWindow] = useState(false)
+  // v1.4.2：WCO 原生窗口按钮是否可见（运行时真实状态，用于原生按钮配色同步与顶栏避让）
+  // v1.4.4：WCO 判定以配置为准（窗口重建机制下二者必然一致），API 仅作初始参考
+  const [wcoVisible, setWcoVisible] = useState(
+    () => !!(navigator as unknown as { windowControlsOverlay?: { visible: boolean } }).windowControlsOverlay?.visible
+  )
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   // MD 预览区引用，用于切换模式时同步滚动位置
   const previewRef = useRef<HTMLDivElement>(null)
@@ -303,10 +337,33 @@ function App() {
     }
   }, [])
 
+  // 有效模式：跟随系统时按系统亮暗偏好解析
+  const effectiveMode: 'light' | 'dark' =
+    themeMode === 'system' ? (systemPrefersDark ? 'dark' : 'light') : themeMode
+  // 有效配色方案：日间/夜间各一个，按当前有效模式取用（Telegram 日夜双配色模型）
+  const effectiveScheme: string = effectiveMode === 'light' ? dayScheme : nightScheme
+
+  // 跟随系统模式：监听系统亮暗偏好变化
   useEffect(() => {
-    document.documentElement.className = theme === 'light' ? 'light' : ''
-    localStorage.setItem('theme', theme)
-  }, [theme])
+    if (themeMode !== 'system') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [themeMode])
+
+  // 应用主题：root className = 模式（light）+ 配色方案（scheme-*）
+  useEffect(() => {
+    document.documentElement.className = [
+      effectiveMode === 'light' ? 'light' : '',
+      effectiveScheme !== 'default' ? `scheme-${effectiveScheme}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    localStorage.setItem('themeMode', themeMode)
+    localStorage.setItem('dayScheme', dayScheme)
+    localStorage.setItem('nightScheme', nightScheme)
+  }, [effectiveMode, effectiveScheme, themeMode, dayScheme, nightScheme])
 
   // 动态应用字体：根据 fontSplit 开关选择统一字体或分离字体
   // v1.2.0 #5：使用 normalizeFontName 去除字体名首尾引号，避免 CSS 双重引号解析失败
@@ -384,6 +441,9 @@ function App() {
       setDraftTtlDays(config.draftTtlDays || 3)
       setAutoLaunch(config.autoLaunch === true)
       setAutoLaunchHidden(config.autoLaunchHidden === true)
+      setShowSystemWindow(config.showSystemWindow === true)
+      // v1.4.4：窗口重建机制下配置值与窗口真实状态必然一致，WCO 判定以配置为准
+      setWcoVisible(config.showSystemWindow === true)
       setBlurToHide(config.blurToHide === true)
       setShowLineNumbers(config.showLineNumbers === true)
       setLineNumberMode(config.lineNumberMode === 'visual' ? 'visual' : 'logical')
@@ -1347,6 +1407,69 @@ function App() {
     window.electronAPI.setBlurToHide(enabled)
   }, [])
 
+  // v1.4.0：显示系统窗口开关（持久化，重启应用后生效）
+  const handleShowSystemWindowChange = useCallback((enabled: boolean) => {
+    setShowSystemWindow(enabled)
+    window.electronAPI.setShowSystemWindow(enabled)
+  }, [])
+
+  // v1.4.1：WCO 原生窗口按钮配色跟随配色方案（其次日夜主题）——配色方案影响原生标题栏
+  useEffect(() => {
+    if (!wcoVisible) return
+    const schemeWco = SCHEME_WCO_COLORS[effectiveScheme]
+    const colors = schemeWco
+      ? { color: schemeWco.color, symbolColor: schemeWco.symbolColor, height: 44 }
+      : {
+          color: effectiveMode === 'light' ? '#e6e9ef' : '#181825',
+          symbolColor: effectiveMode === 'light' ? '#4c4f69' : '#cdd6f4',
+          height: 44,
+        }
+    window.electronAPI.setTitleBarOverlay(colors).catch(() => {})
+  }, [wcoVisible, effectiveMode, effectiveScheme])
+
+  // v1.4.2：WCO 避让——放弃 getTitlebarAreaRect 动态测量（其返回值在最大化/窗口化两种状态下
+  // 均出现错误数值：0 或超大 inset），改用确定值 144px（3 × 48px 原生按钮标准宽）
+  useEffect(() => {
+    const applyInset = (px: number) => {
+      document.documentElement.style.setProperty('--wco-inset', `${px}px`)
+    }
+    applyInset(wcoVisible ? 144 : 0)
+  }, [wcoVisible])
+
+  // v1.4.3：标题与工具栏按钮碰撞时自动隐藏标题（窗口过窄场景，ResizeObserver + resize 双触发）
+  // v1.4.4：碰撞边界纳入 WCO 原生按钮区（非 DOM 元素，按 144px 避让带判定）
+  const titleTextRef = useRef<HTMLSpanElement>(null)
+  const [titleHidden, setTitleHidden] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const text = titleTextRef.current
+      const bar = text?.closest('.titlebar')
+      if (!text || !bar) return
+      const t = text.getBoundingClientRect()
+      let collide = false
+      bar.querySelectorAll<HTMLElement>('.titlebar-left .btn, .titlebar-buttons .btn').forEach((b) => {
+        if (collide) return
+        const r = b.getBoundingClientRect()
+        if (t.right > r.left && t.left < r.right) collide = true
+      })
+      // 原生按钮区（WCO 模式下窗口右缘 144px + 16px 内边距）与标题相交也算碰撞
+      if (!collide && wcoVisible) {
+        const nativeZoneLeft = window.innerWidth - 144 - 16
+        if (t.right > nativeZoneLeft) collide = true
+      }
+      setTitleHidden(collide)
+    }
+    check()
+    window.addEventListener('resize', check)
+    const ro = new ResizeObserver(check)
+    const barEl = document.querySelector('.titlebar')
+    if (barEl) ro.observe(barEl)
+    return () => {
+      window.removeEventListener('resize', check)
+      ro.disconnect()
+    }
+  }, [fileInfo, showSystemWindow, wcoVisible])
+
   // 行号显示开关：同步到主进程持久化
   const handleShowLineNumbersChange = useCallback((enabled: boolean) => {
     setShowLineNumbers(enabled)
@@ -2289,7 +2412,7 @@ function App() {
   }, [editorMode, text])
 
   return (
-    <div className="app" onKeyDown={handleKeyDown}>
+    <div className={`app${wcoVisible ? ' wco' : ''}`} onKeyDown={handleKeyDown}>
       {/* Titlebar */}
       <div className="titlebar">
         <div className="titlebar-left">
@@ -2409,7 +2532,7 @@ function App() {
           </div>
           )}
         </div>
-        <span className="titlebar-text">{fileInfo ? fileInfo.fileName : t('titlebar.title')}</span>
+        <span ref={titleTextRef} className={`titlebar-text${titleHidden ? ' titlebar-text-hidden' : ''}`}>{fileInfo ? fileInfo.fileName : t('titlebar.title')}</span>
         <div className="titlebar-buttons">
           {navbarButtons.newBtn && (
           <button
@@ -2499,11 +2622,11 @@ function App() {
           </button>
           <button
             className="btn btn-theme"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setThemeMode(effectiveMode === 'dark' ? 'light' : 'dark')}
             title={t('titlebar.toggleTheme')}
             aria-label={t('titlebar.toggleTheme')}
           >
-            {theme === 'dark' ? (
+            {effectiveMode === 'dark' ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="5" />
                 <line x1="12" y1="1" x2="12" y2="3" />
@@ -2521,18 +2644,20 @@ function App() {
               </svg>
             )}
           </button>
-          {/* 关闭窗口按钮：手动关闭当前窗口（支持多窗口场景） */}
-          <button
-            className="btn btn-close-window"
-            onClick={handleCloseWithCheck}
-            title={t('titlebar.close', '关闭')}
-            aria-label={t('titlebar.close', '关闭')}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          {/* 关闭窗口按钮：手动关闭当前窗口（多窗口场景）；WCO 原生按钮可见时隐藏，避免双排 */}
+          {!wcoVisible && (
+            <button
+              className="btn btn-close-window"
+              onClick={handleCloseWithCheck}
+              title={t('titlebar.close', '关闭')}
+              aria-label={t('titlebar.close', '关闭')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -2716,8 +2841,14 @@ function App() {
             onEditorPaddingChange={handleEditorPaddingChange}
             showMinimap={showMinimap}
             onShowMinimapChange={handleShowMinimapChange}
-            theme={theme}
-            onThemeChange={setTheme}
+            themeMode={themeMode}
+            onThemeModeChange={setThemeMode}
+            dayScheme={dayScheme}
+            onDaySchemeChange={setDayScheme}
+            nightScheme={nightScheme}
+            onNightSchemeChange={setNightScheme}
+            showSystemWindow={showSystemWindow}
+            onShowSystemWindowChange={handleShowSystemWindowChange}
             indentType={indentType}
             indentSize={indentSize}
             onIndentTypeChange={handleIndentTypeChange}

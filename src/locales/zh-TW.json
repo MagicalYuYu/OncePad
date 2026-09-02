@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "最近打开 ({{shortcut}})",
     "fileCopyPath": "复制文件路径",
     "copyPath": "复制文件路径",
-    "copyPathNoFile": "请先打开文件"
+    "copyPathNoFile": "请先打开文件",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "還原"
   },
   "editor": {
     "placeholder": "在此輸入...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "依換行符號分割行號，未按 Enter 視為同一行。適合程式碼編輯。",
     "lineNumberVisualHint": "依顯示行數編號，軟換行後每行皆有行號。適合閱讀長文本。",
     "theme": "主題模式",
-    "themeDark": "深色",
-    "themeLight": "淺色",
+    "themeDark": "夜間模式",
+    "themeLight": "日間模式",
     "editorLineHeight": "編輯器行高",
     "editorLineHeightHint": "調整編輯器文字行間距，值越大行距越寬",
     "editorPadding": "編輯器內邊距",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "历史打开文件面板快捷键",
     "recentFilesShortcutHint": "唤起历史打开文件命令面板（默认 Ctrl+Shift+O）",
     "navbarRecentFiles": "最近打开文件",
-    "navbarCopyPath": "复制文件路径"
+    "navbarCopyPath": "复制文件路径",
+    "themeModeSystem": "跟隨系統",
+    "showSystemWindow": "顯示系統視窗",
+    "showSystemWindowDesc": "立即生效（視窗會短暫重新開啟）：開啟顯示系統原生最小化/最大化/關閉按鈕；關閉使用內建 WinUI 3 風格按鈕",
+    "dayScheme": "日間配色",
+    "nightScheme": "夜間配色",
+    "scheme_default": "預設",
+    "scheme_monokai": "莫諾凱",
+    "scheme_dracula": "德古拉",
+    "scheme_obsidian": "黑曜石",
+    "scheme_zenburn": "禪意棕",
+    "scheme_solarizedDark": "日炙深色",
+    "scheme_solarizedLight": "日炙淺色",
+    "scheme_vsdark": "VS Code 深色",
+    "scheme_purewhite": "純白",
+    "daySchemeDefault": "預設",
+    "nightSchemeDefault": "預設"
   },
   "about": {
     "description": "一款輕量級隨叫隨到的臨時筆記本",

@@ -23,7 +23,10 @@
     "recentFilesWithShortcut": "Recent files ({{shortcut}})",
     "fileCopyPath": "Copy file path",
     "copyPath": "Copy file path",
-    "copyPathNoFile": "Open a file first"
+    "copyPathNoFile": "Open a file first",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore"
   },
   "editor": {
     "placeholder": "Type here...",
@@ -183,8 +186,8 @@
     "lineNumberLogicalHint": "Number by line breaks; lines without Enter count as same line. Suited for code editing.",
     "lineNumberVisualHint": "Number by displayed rows; each soft-wrapped row gets a number. Suited for reading long text.",
     "theme": "Theme",
-    "themeDark": "Dark",
-    "themeLight": "Light",
+    "themeDark": "Night mode",
+    "themeLight": "Day mode",
     "editorLineHeight": "Editor Line Height",
     "editorLineHeightHint": "Adjust line spacing in the editor; larger values mean wider spacing",
     "editorPadding": "Editor Padding",
@@ -249,7 +252,23 @@
     "recentFilesShortcut": "Recent files shortcut",
     "recentFilesShortcutHint": "Open the recent files palette (default Ctrl+Shift+O)",
     "navbarRecentFiles": "Recent files",
-    "navbarCopyPath": "Copy file path"
+    "navbarCopyPath": "Copy file path",
+    "themeModeSystem": "Follow system",
+    "showSystemWindow": "Show system window",
+    "showSystemWindowDesc": "Applies immediately (the window briefly reopens): shows the native minimize/maximize/close buttons when on; built-in WinUI 3 style buttons when off",
+    "dayScheme": "Day color scheme",
+    "nightScheme": "Night color scheme",
+    "scheme_default": "Default",
+    "scheme_monokai": "Monokai",
+    "scheme_dracula": "Dracula",
+    "scheme_obsidian": "Obsidian",
+    "scheme_zenburn": "Zenburn",
+    "scheme_solarizedDark": "Solarized Dark",
+    "scheme_solarizedLight": "Solarized Light",
+    "scheme_vsdark": "VS Code Dark",
+    "scheme_purewhite": "Pure white",
+    "daySchemeDefault": "Default",
+    "nightSchemeDefault": "Default"
   },
   "about": {
     "description": "A lightweight, instant-access scratchpad — every piece of scattered text finds its place",
