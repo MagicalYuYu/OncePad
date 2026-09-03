@@ -1010,6 +1010,10 @@ export function EditorArea(props: EditorAreaProps) {
     //   → overlay 文字内容区 = 950 - 64 = 886（比 textarea 文字 950 少 64px）
     //   → wrap 行数不一致 → 文本位置错乱（mark 与 textarea 文字对不齐）
     overlay.style.width = `${textarea.clientWidth}px`
+    // v1.3.2 修复：overlay 高度 = textarea 可视高度。CSS height:100% 相对 editor-container
+    //（含底部状态栏的总高），比编辑区高出一截——搜索时文本溢出压在字数状态栏上，
+    // 且 overlay 最大 scrollTop 与 textarea 不一致，底部滚动同步被 clamp 错位
+    overlay.style.height = `${textarea.clientHeight}px`
   }, [])
 
   /**
@@ -1039,6 +1043,12 @@ export function EditorArea(props: EditorAreaProps) {
     // matches 变化或 text 变化：重建全部 innerHTML
     overlay.innerHTML = ''
     if (matches.length === 0) {
+      // v1.3.2 修复：无匹配时也要渲染纯文本——
+      // 搜索激活时 textarea 文字已透明（with-search class），overlay 是唯一的文本承载层；
+      // 之前这里直接清空，导致 Ctrl+F 刚打开（空搜索词）或输入无匹配词时编辑区整体空白
+      // 末尾补 \n：textarea 作为 replaced element 底部恒预留一个空行（~一行高），
+      // overlay 不补则 scrollHeight 少一行，底部滚动被 clamp 导致 mark 与文本错位
+      overlay.textContent = text + '\n'
       prevMatchesLengthRef.current = 0
       prevCurrentMarkRef.current = null
       prevTextRef.current = ''
@@ -1057,7 +1067,10 @@ export function EditorArea(props: EditorAreaProps) {
     }
     // 末尾普通文本
     fragments.push(escapeHtml(text.slice(lastEnd)))
-    overlay.innerHTML = fragments.join('')
+    // v1.3.2 修复（恢复 2026-08-10 丢失的补丁）：末尾补 \n 使 overlay.scrollHeight
+    // 与 textarea 对齐（textarea 底部恒预留一个空行），否则滚动到底部区域时 overlay 的
+    // scrollTop 被 clamp 在更小的最大值，mark 高亮相对文本逐渐偏移一行
+    overlay.innerHTML = fragments.join('') + '\n'
     prevMatchesLengthRef.current = matches.length
     prevCurrentMarkRef.current = overlay.querySelectorAll('mark')[currentIndex] as HTMLElement | null
     // P0-1 修复：缓存当前 text 内容
@@ -1096,6 +1109,9 @@ export function EditorArea(props: EditorAreaProps) {
       mirrorDiv.style.fontSize = taStyle.fontSize
       mirrorDiv.style.lineHeight = taStyle.lineHeight
       mirrorDiv.style.letterSpacing = taStyle.letterSpacing
+      // v1.3.2 修复：同步 tabSize——textarea 有 inline tabSize（indentSize），
+      // mirror 不同步则含 Tab 文本的软换行位置算错，导致匹配项垂直定位偏移
+      mirrorDiv.style.tabSize = taStyle.tabSize
       // 精确测量：用 mirror div 填入匹配前的文本，测量 scrollHeight
       const textBefore = textarea.value.slice(0, match.start)
       mirrorDiv.textContent = textBefore || '\u00A0'

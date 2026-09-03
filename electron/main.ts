@@ -158,6 +158,8 @@ interface Config {
   showSystemWindow?: boolean
   // 失焦自动隐藏：窗口失去焦点时自动隐藏到托盘（可配置，默认关闭）
   blurToHide?: boolean
+  // v1.3.2：隐藏窗口时自动复制文本到剪贴板（含 Alt+Q 唤起/隐藏切换，默认开启）
+  copyOnHide?: boolean
   // 默认新建笔记工作区 ID（空字符串=默认工作区，新建笔记自动归入此工作区）
   defaultWorkspaceId?: string
   // 行号显示：在编辑区最左侧显示行号（默认关闭，方便代码类文件阅读）
@@ -442,9 +444,14 @@ function loadConfig(): Config {
           : (typeof saved.copyShortcut === 'string' && shortcutValidator.test(saved.copyShortcut)
             ? saved.copyShortcut
             : defaultCopyShortcut),
-        recentFilesShortcut: typeof saved.recentFilesShortcut === 'string' && shortcutValidator.test(saved.recentFilesShortcut)
-          ? saved.recentFilesShortcut
-          : defaultRecentFilesShortcut,
+        // v1.3.2 修复：recentFilesShortcut 补空字符串豁免（与 newShortcut/copyShortcut 一致）。
+        // 之前清空保存的 ''（用户显式禁用）在重启后通不过正则校验被回退为默认值，
+        // 导致设置面板"当前"又显示 Ctrl+Shift+O
+        recentFilesShortcut: typeof saved.recentFilesShortcut === 'string' && saved.recentFilesShortcut === ''
+          ? '' // 空字符串允许（用户显式清空=禁用）
+          : (typeof saved.recentFilesShortcut === 'string' && shortcutValidator.test(saved.recentFilesShortcut)
+            ? saved.recentFilesShortcut
+            : defaultRecentFilesShortcut),
         alwaysOnTop: saved.alwaysOnTop === true,
         indentType: saved.indentType === 'tab' ? 'tab' : 'space',
         indentSize: [2, 4, 6, 8].includes(Number(saved.indentSize)) ? Number(saved.indentSize) : 2,
@@ -474,6 +481,8 @@ function loadConfig(): Config {
         showSystemWindow: saved.showSystemWindow === true,
         // 修复：必须显式加载 blurToHide 字段，否则 newWin.on('blur') 读取时始终为 undefined
         blurToHide: saved.blurToHide === true,
+        // v1.3.2：隐藏时自动复制（默认开启，仅显式 false 才关闭）
+        copyOnHide: saved.copyOnHide !== false,
         // 修复：必须显式加载 defaultWorkspaceId 字段，否则新建笔记时无法使用默认工作区
         defaultWorkspaceId: typeof saved.defaultWorkspaceId === 'string' ? saved.defaultWorkspaceId : '',
         // 行号显示：从配置加载，默认关闭
@@ -538,6 +547,8 @@ function loadConfig(): Config {
     showSystemWindow: false,
     // 默认关闭失焦自动隐藏（用户需手动在设置中开启）
     blurToHide: false,
+    // v1.3.2：默认开启隐藏时自动复制（继承上游 one-time-editor 核心工作流）
+    copyOnHide: true,
     // 默认工作区为空字符串（=默认工作区）
     defaultWorkspaceId: '',
     // 行号显示默认关闭
@@ -1663,8 +1674,9 @@ function toggleWindow() {
   const visibleWindows = allWindows.filter(w => w.isVisible())
   if (visibleWindows.length > 0) {
     // 有可见窗口 → 隐藏所有窗口
+    // v1.3.2：隐藏时自动复制受 copyOnHide 开关控制（默认开启；关闭后不再覆盖剪贴板）
     const lastWin = getLastWindow()
-    if (lastWin) {
+    if (lastWin && loadConfig().copyOnHide !== false) {
       const text = windowTexts.get(lastWin.id) || ''
       copyText(text)
     }
@@ -2184,6 +2196,14 @@ app.whenReady().then(() => {
   ipcMain.handle('set-blur-to-hide', (_event, enabled: boolean) => {
     const config = loadConfig()
     config.blurToHide = enabled === true
+    saveConfig(config)
+    return true
+  })
+
+  // v1.3.2：隐藏时自动复制开关（默认开启）
+  ipcMain.handle('set-copy-on-hide', (_event, enabled: boolean) => {
+    const config = loadConfig()
+    config.copyOnHide = enabled === true
     saveConfig(config)
     return true
   })

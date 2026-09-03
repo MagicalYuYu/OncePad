@@ -41,6 +41,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setDraftTtlDays: (days: number) => ipcRenderer.invoke('set-draft-ttl-days', days),
   setAutoLaunch: (enabled: boolean, hidden: boolean) => ipcRenderer.invoke('set-auto-launch', enabled, hidden),
   setBlurToHide: (enabled: boolean) => ipcRenderer.invoke('set-blur-to-hide', enabled),
+  // v1.3.2：隐藏时自动复制开关（默认开启）
+  setCopyOnHide: (enabled: boolean) => ipcRenderer.invoke('set-copy-on-hide', enabled),
   // v1.4.0：显示系统原生标题栏开关（重启生效）
   setShowSystemWindow: (enabled: boolean) => ipcRenderer.invoke('set-show-system-window', enabled),
   // v1.4.0：WinUI 3 内置标题栏窗口控制

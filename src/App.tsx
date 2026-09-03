@@ -108,6 +108,8 @@ function App() {
   const [autoLaunchHidden, setAutoLaunchHidden] = useState(false)
   // 失焦自动隐藏：窗口失去焦点时自动隐藏到托盘
   const [blurToHide, setBlurToHide] = useState(false)
+  // v1.3.2：隐藏时自动复制（默认开启）
+  const [copyOnHide, setCopyOnHide] = useState(true)
   // 行号显示：在编辑区最左侧显示行号（默认关闭）
   const [showLineNumbers, setShowLineNumbers] = useState(false)
   // 行号模式：logical=逻辑行号（按换行符分割），visual=视觉行号（软换行后每行都编号）
@@ -403,6 +405,13 @@ function App() {
     }
 
     root.style.setProperty('--editor-font-size', `${fontSize}px`)
+
+    // v1.3.2 修复：预览区（阅览模式）字体跟随用户设置的中文字体，回退到系统 UI 字体栈。
+    // 之前 .md-preview 写死系统字体，导致用户设置的字体仅在源码模式生效
+    root.style.setProperty(
+      '--preview-font',
+      `'${cnFont}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
+    )
   }, [fontEn, fontCn, fontSize, fontSplit])
 
   // 动态应用编辑器行高和内边距（通过 CSS 变量传递给 .editor 和 .editor-gutter）
@@ -433,7 +442,8 @@ function App() {
       setCopyShortcut(config.copyShortcut)
       setCopyShortcutInput(config.copyShortcut)
       // v1.3.0 需求 3：历史文件面板快捷键（默认 Control+Shift+O）
-      const rfShortcut = config.recentFilesShortcut || 'Control+Shift+O'
+      // v1.3.2 修复：nullish 判断（'' = 用户显式禁用，保留空；之前 || 会把空回退成默认值）
+      const rfShortcut = config.recentFilesShortcut ?? 'Control+Shift+O'
       setRecentFilesShortcut(rfShortcut)
       setRecentFilesShortcutInput(rfShortcut)
       setAlwaysOnTop(config.alwaysOnTop)
@@ -445,6 +455,8 @@ function App() {
       // v1.4.4：窗口重建机制下配置值与窗口真实状态必然一致，WCO 判定以配置为准
       setWcoVisible(config.showSystemWindow === true)
       setBlurToHide(config.blurToHide === true)
+      // v1.3.2：隐藏时自动复制（默认开启，仅显式 false 才关闭）
+      setCopyOnHide(config.copyOnHide !== false)
       setShowLineNumbers(config.showLineNumbers === true)
       setLineNumberMode(config.lineNumberMode === 'visual' ? 'visual' : 'logical')
       setEditorLineHeight(config.editorLineHeight ?? 1.7)
@@ -1353,14 +1365,13 @@ function App() {
     await window.electronAPI.setIndent(indentType, newSize)
   }, [indentType])
 
-  const handleFontEnChange = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const font = e.target.value
+  // v1.3.2：字体选择改为 FontSelect（可输入搜索），回调直接接收字体名
+  const handleFontEnChange = useCallback(async (font: string) => {
     setFontEn(font)
     await window.electronAPI.setFontEn(font)
   }, [])
 
-  const handleFontCnChange = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const font = e.target.value
+  const handleFontCnChange = useCallback(async (font: string) => {
     setFontCn(font)
     await window.electronAPI.setFontCn(font)
   }, [])
@@ -1405,6 +1416,12 @@ function App() {
   const handleBlurToHideChange = useCallback((enabled: boolean) => {
     setBlurToHide(enabled)
     window.electronAPI.setBlurToHide(enabled)
+  }, [])
+
+  // v1.3.2：隐藏时自动复制开关（默认开启）
+  const handleCopyOnHideChange = useCallback((enabled: boolean) => {
+    setCopyOnHide(enabled)
+    window.electronAPI.setCopyOnHide(enabled)
   }, [])
 
   // v1.4.0：显示系统窗口开关（持久化，重启应用后生效）
@@ -2831,6 +2848,8 @@ function App() {
             onAutoLaunchHiddenChange={handleAutoLaunchHiddenChange}
             blurToHide={blurToHide}
             onBlurToHideChange={handleBlurToHideChange}
+            copyOnHide={copyOnHide}
+            onCopyOnHideChange={handleCopyOnHideChange}
             showLineNumbers={showLineNumbers}
             onShowLineNumbersChange={handleShowLineNumbersChange}
             lineNumberMode={lineNumberMode}

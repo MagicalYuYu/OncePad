@@ -2096,7 +2096,9 @@ body {
 /* 覆盖 .editor 的字体，预览模式使用无衬线字体便于阅读 */
 .md-preview {
   overflow-y: auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, var(--font-cn), 'Helvetica Neue', Arial, sans-serif;
+  /* v1.3.2 修复：预览区字体跟随用户设置的中文字体（--preview-font 由 App.tsx 字体 effect 动态写入），
+     修复"源码模式字体生效、阅览模式仍显示系统默认字体"的作用范围缺陷 */
+  font-family: var(--preview-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, var(--font-cn), 'Helvetica Neue', Arial, sans-serif);
   cursor: text;
   padding: 24px 32px;
 }
@@ -3291,3 +3293,70 @@ html.scheme-solarizedLight .titlebar .btn { color: #586e75; }
 html.scheme-vsdark .titlebar { background: #181818; border-bottom-color: #2d2d2d; }
 html.scheme-vsdark .titlebar-text { color: #a8a8a8; }
 html.scheme-vsdark .titlebar .btn { color: #c5c5c5; }
+
+/* ============ 字体搜索选择器 FontSelect（v1.3.2，Word 风格，替代字体下拉 select） ============ */
+.font-select {
+  position: relative;
+}
+
+.font-select-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+
+.font-select-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.font-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.font-select-option {
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 当前保存的字体：加粗 + ✓ 标记 */
+.font-select-current {
+  font-weight: 600;
+}
+
+.font-select-current::after {
+  content: ' ✓';
+  font-weight: 400;
+}
+
+/* 键盘/悬停高亮（声明在 current 之后，高亮配色优先生效） */
+.font-select-active {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.font-select-empty {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Workspace, Tag } from '../types'
-import { normalizeFontName } from '../lib/format'
+import { FontSelect } from './FontSelect'
 
 // ===== 设置面板相关的本地类型 =====
 // 这两个类型原本定义在 App.tsx 中，拆分 SettingsPanel 组件时迁移至此处并导出，
@@ -81,6 +81,9 @@ interface SettingsPanelProps {
   // v1.4.0：显示系统原生标题栏（Telegram「显示系统窗口」同款，重启生效）
   showSystemWindow: boolean
   onShowSystemWindowChange: (enabled: boolean) => void
+  // v1.3.2：隐藏窗口时自动复制文本到剪贴板（默认开启）
+  copyOnHide: boolean
+  onCopyOnHideChange: (enabled: boolean) => void
   indentType: 'space' | 'tab'
   indentSize: number
   onIndentTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
@@ -94,8 +97,9 @@ interface SettingsPanelProps {
   systemFonts: string[]
   uiScale: number
   uiScalePreview: number
-  onFontEnChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  onFontCnChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  // v1.3.2：字体选择改为可输入搜索的 FontSelect（Word 风格），回调签名从 SelectChangeEvent 改为 string
+  onFontEnChange: (font: string) => void
+  onFontCnChange: (font: string) => void
   onFontSizeChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onFontSplitChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onUiScaleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -372,6 +376,24 @@ export function SettingsPanel(props: SettingsPanelProps) {
               </div>
             </div>
             <div className="settings-item">
+              <div className="settings-row">
+                <div>
+                  <div className="settings-label">{t('settings.copyOnHide', '隐藏时自动复制文本')}</div>
+                  <div className="setting-description">
+                    {t('settings.copyOnHideDesc', '隐藏窗口时（如按 Alt+Q）自动将编辑区全部文本复制到剪贴板；关闭后隐藏不再覆盖剪贴板内容')}
+                  </div>
+                </div>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={props.copyOnHide}
+                    onChange={(e) => props.onCopyOnHideChange(e.target.checked)}
+                  />
+                  <span className="switch-slider" />
+                </label>
+              </div>
+            </div>
+            <div className="settings-item">
               <div className="settings-label">{t('settings.closeLastWindowBehavior', '关闭最后一个窗口时')}</div>
               <div className="setting-description" style={{ marginBottom: 8 }}>
                 {t('settings.closeLastWindowBehaviorDesc', '当关闭最后一个窗口时，选择应用的行为')}
@@ -499,31 +521,22 @@ export function SettingsPanel(props: SettingsPanelProps) {
             </div>
             <div className="settings-item">
               <div className="settings-label">{t('settings.fontEn')}</div>
-              <select
-                className="settings-select settings-select-full"
+              <FontSelect
                 value={props.fontEn}
+                fonts={props.systemFonts}
                 onChange={props.onFontEnChange}
-              >
-                {props.systemFonts.map((font) => (
-                  <option key={font} value={font} style={{ fontFamily: `"${normalizeFontName(font)}", monospace` }}>
-                    {font}
-                  </option>
-                ))}
-              </select>
+                previewFallback="monospace"
+              />
             </div>
             <div className="settings-item">
               <div className="settings-label">{t('settings.fontCn')}</div>
-              <select
-                className="settings-select settings-select-full"
+              <FontSelect
                 value={props.fontCn}
+                fonts={props.systemFonts}
                 onChange={props.onFontCnChange}
-              >
-                {props.systemFonts.map((font) => (
-                  <option key={font} value={font} style={{ fontFamily: `"${normalizeFontName(font)}", sans-serif` }}>
-                    {font}
-                  </option>
-                ))}
-              </select>
+                previewFallback="sans-serif"
+                noMatchText={t('settings.fontNoMatch', '无匹配字体')}
+              />
               <div className="shortcut-hint">
                 {t('settings.fontCnHint')}
               </div>
@@ -991,7 +1004,7 @@ export function SettingsPanel(props: SettingsPanelProps) {
                 <button
                   className="btn-save"
                   onClick={props.onSaveRecentFilesShortcut}
-                  disabled={props.recentFilesShortcutInput === props.recentFilesShortcut || !props.recentFilesShortcutInput.trim()}
+                  disabled={props.recentFilesShortcutInput === props.recentFilesShortcut}
                 >
                   {t('settings.save')}
                 </button>

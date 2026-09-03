@@ -87,7 +87,9 @@ Press a global shortcut to summon it, type your text, press again — and it's a
 | Files | Save / Save as | Save to original path or save as new file |
 | i18n | 11 languages | zh-CN/zh-TW/en/ja/ko/de/fr/es/pt-BR/ru/it |
 | UI | Navbar customization | Show/hide 6 titlebar buttons (settings locked) |
-| UI | Dark/Light theme | Toggle between dark and light modes |
+| UI | Theme modes | Light / dark / follow-system |
+| UI | Color schemes | 9 built-in schemes (Monokai / Dracula / Obsidian / Zenburn / Solarized / VS Code Dark / Pure White) |
+| UI | Native window controls | Optional WCO overlay, colors follow theme |
 | Window | Always on top | Keep window above other applications |
 | Window | Auto-launch | Start with system, optionally hidden |
 | Window | Blur to hide | Auto-hide when window loses focus |

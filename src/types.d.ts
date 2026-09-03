@@ -123,6 +123,8 @@ export interface AppConfig {
   // v1.4.0：显示系统原生标题栏（重启生效）；false=内置 WinUI 3 风格标题栏
   showSystemWindow?: boolean
   blurToHide?: boolean
+  // v1.3.2：隐藏窗口时自动复制文本到剪贴板（默认开启）
+  copyOnHide?: boolean
   defaultWorkspaceId?: string
   showLineNumbers?: boolean
   lineNumberMode?: 'logical' | 'visual'
@@ -208,6 +210,8 @@ export interface ElectronAPI {
   setDraftTtlDays: (days: number) => Promise<boolean>
   setAutoLaunch: (enabled: boolean, hidden: boolean) => Promise<boolean>
   setBlurToHide: (enabled: boolean) => Promise<boolean>
+  // v1.3.2：隐藏时自动复制开关（默认开启）
+  setCopyOnHide: (enabled: boolean) => Promise<boolean>
   // v1.4.0：显示系统原生标题栏开关（重启生效）
   setShowSystemWindow: (enabled: boolean) => Promise<boolean>
   // v1.4.0：WinUI 3 内置标题栏窗口控制
